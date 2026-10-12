@@ -16,3 +16,6 @@ website-v3/
 # 打包/下载残留，绝不该提交（CI 检查会拦截）
 pack-staging/
 *.tgz
+
+# 用户提示词记录（仅本地，不 push）
+prompt-history.txt
