@@ -3,7 +3,7 @@
 ## 0. 元信息
 - 项目 / 仓库：claude-code-zh-cn（本地 harnessing 分支）
 - 计划版本 / 日期：v1 / 2026-10-12
-- 状态：待确认
+- 状态：执行中（A/B 完成，C 待做）
 - 类型：**新增功能（行为变更）**——与 harness 改造（行为守恒）无关，独立提交、独立验收
 
 ## 1. 背景与目标
@@ -87,4 +87,7 @@
 
 | 日期 | 批次 | 动作 | 关联 commit | 决策与理由 |
 |---|---|---|---|---|
-| 2026-10-12 | — | 立项（背景实测：detect=unknown，bunfs 2341 chunk，2.1.296 超官方窗口） | （本次提交） | 复用 patch-cli.js 引擎；不动 clawgod 本体 |
+| 2026-10-12 | — | 立项（背景实测：detect=unknown，bunfs 2341 chunk，2.1.296 超官方窗口） | a6e36f2 | 复用 patch-cli.js 引擎；不动 clawgod 本体 |
+| 2026-10-12 | — | D6=clawgod 专属、D7=默认开启（用户决策） | a6e36f2 | 见计划 §5 |
+| 2026-10-12 | A | detect-clawgod.js + install.sh 分派 + 5 例 | （见提交） | os.homedir() 随 HOME，测试不触真实环境 |
+| 2026-10-12 | B | patch-bunfs.js（spawn 复用 patch-cli.js）+ uninstall 还原 + 5 例 | （见提交） | 过程中修复：最小 PATH 下 dirname 不可用 → 纯 bash \${0%/*}；孤儿行清理 |
