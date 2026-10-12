@@ -404,6 +404,23 @@ if [ "$RESTORED" = false ]; then
     fi
 fi
 
+# 还原 clawgod bunfs（独立于 npm/native 路径，可共存）
+# 用纯 bash 参数展开定位脚本目录：node-only 环境（无 coreutils）下 dirname 可能不可用
+uninstall_dir="${0%/*}"
+[ "$uninstall_dir" = "$0" ] && uninstall_dir="."
+clawgod_bunfs=""
+if [ -f "$uninstall_dir/scripts/detect-clawgod.js" ]; then
+    clawgod_bunfs="$(node "$uninstall_dir/scripts/detect-clawgod.js" 2>/dev/null || true)"
+fi
+if [ -z "$clawgod_bunfs" ] && [ -d "${CLAWGOD_DIR:-$HOME/.clawgod}/bunfs.zh-cn-backup" ]; then
+    clawgod_bunfs="clawgod-bunfs:${CLAWGOD_DIR:-$HOME/.clawgod}/bunfs"
+fi
+if [ -n "$clawgod_bunfs" ] && [ -f "$uninstall_dir/scripts/patch-bunfs.js" ]; then
+    node "$uninstall_dir/scripts/patch-bunfs.js" --restore "${clawgod_bunfs#clawgod-bunfs:}" && \
+        echo -e "${GREEN}已还原 clawgod bunfs${NC}" || \
+        echo -e "${YELLOW}clawgod bunfs 还原未完成，备份目录保留在 bunfs.zh-cn-backup${NC}"
+fi
+
 # 还原 skill/插件命令说明为英文（必须在移除插件目录前，否则 restore.js 已不存在）
 if [ -f "$PLUGIN_DST/skill-i18n/restore.js" ] && command -v node >/dev/null 2>&1; then
     echo -e "${BLUE}还原 skill/插件命令说明为英文...${NC}"
