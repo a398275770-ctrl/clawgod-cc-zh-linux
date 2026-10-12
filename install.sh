@@ -1104,8 +1104,16 @@ detect_installation() {
         local result
         result="$(node "$PLUGIN_SRC/bun-binary-io.js" detect "$claude_bin" 2>/dev/null || true)"
 
-        # helper 成功执行：有结果就用；unknown 也向上传递，供上层决定如何提示
+        # helper 成功执行：有结果就用；unknown 时回退 clawgod bunfs 形态检测（D6）
         if [ -n "$result" ]; then
+            if [ "$result" = "unknown" ]; then
+                local clawgod_result
+                clawgod_result="$(node "$PLUGIN_SRC/scripts/detect-clawgod.js" 2>/dev/null || true)"
+                if [ -n "$clawgod_result" ]; then
+                    printf "%s" "$clawgod_result"
+                    return
+                fi
+            fi
             printf "%s" "$result"
             return
         fi
@@ -1223,6 +1231,32 @@ patch_native_binary() {
     fi
 }
 
+patch_clawgod_bunfs() {
+    local bunfs_dir="$1"
+
+    if [ ! -f "$SCRIPT_DIR/scripts/patch-bunfs.js" ]; then
+        CLI_PATCH_STATUS_SUMMARY="已跳过（缺少 scripts/patch-bunfs.js）"
+        return 0
+    fi
+
+    echo ""
+    echo -e "${BLUE}正在 patch clawgod bunfs 硬编码文字...${NC}"
+
+    local result_line patched_count failed_count
+    result_line="$(node "$SCRIPT_DIR/scripts/patch-bunfs.js" "$bunfs_dir" 2>&1 | grep '^RESULT ' | tail -1 || true)"
+    patched_count="$(printf '%s' "$result_line" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d.slice(7)).patched)}catch{console.log("0")}})' 2>/dev/null || echo "0")"
+    failed_count="$(printf '%s' "$result_line" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d.slice(7)).failed)}catch{console.log("0")}})' 2>/dev/null || echo "0")"
+
+    if [ "$failed_count" = "0" ]; then
+        echo -e "${GREEN}已 patch clawgod bunfs（${patched_count} 个 chunk）${NC}"
+        CLI_PATCH_STATUS_SUMMARY="clawgod bunfs 中文化（${patched_count} 个 chunk）"
+    else
+        echo -e "${YELLOW}clawgod bunfs 部分中文化（成功 ${patched_count}，失败 ${failed_count} 已回滚，CLI 保持可用）${NC}"
+        CLI_PATCH_STATUS_SUMMARY="clawgod bunfs 部分中文化（${patched_count} 成功 / ${failed_count} 回滚）"
+    fi
+    CLI_PATCH_STATUS_OK=true
+}
+
 initial_patch_cli() {
     local install_info
 
@@ -1242,6 +1276,9 @@ initial_patch_cli() {
             ;;
         native-bun)
             patch_native_binary "$target"
+            ;;
+        clawgod-bunfs)
+            patch_clawgod_bunfs "$target"
             ;;
         unknown)
             echo -e "${YELLOW}当前安装方式暂不支持 CLI Patch，已跳过此步骤${NC}"
