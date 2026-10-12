@@ -1,0 +1,4 @@
+{
+  "$schema-note": "门禁豁免登记表。每条豁免必须显式、带原因、带到期时间（core-beliefs #20）。check 为门禁名，path 为文件路径（glob 不支持，写具体文件），reason 必填，expires 为 YYYY-MM-DD，过期后豁免自动失效（门禁恢复拦截）。",
+  "exemptions": []
+}
