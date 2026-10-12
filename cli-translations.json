@@ -133,7 +133,8 @@
   },
   {
     "en": " lines]",
-    "zh": " 行]"
+    "zh": " 行]",
+    "skipPatch": true
   },
   {
     "en": " navigate · ",

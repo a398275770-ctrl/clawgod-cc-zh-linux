@@ -278,7 +278,16 @@ function escapeSingleQuotedLiteralNeedleContent(text) {
 }
 
 function isProtectedProtocolLiteral(literal) {
-    return literal.quote === "`" && literal.text.startsWith("[Pasted text #${") && literal.text.endsWith(" lines]");
+    // 保护粘贴附件协议占位符模板，避免翻译表把 lines] 误改为 行]。
+    // 匹配两种形态：字面量 `[Pasted text #${id} +${n} lines]` 和变量形式 `[${r} #${e} +${n} lines]`。
+    // 后者（UJ 函数）用变量 r="Pasted text" 而非字面量，原检查漏掉它导致协议被翻译破坏。
+    if (literal.quote !== "`") return false;
+    // 字面量形式
+    if (literal.text.startsWith("[Pasted text #${") && literal.text.endsWith(" lines]")) {
+        return true;
+    }
+    // 变量形式：`[${var} #${var} +${var} lines]`
+    return /^\[\$\{[A-Za-z0-9_$]+\} #\$\{[A-Za-z0-9_$]+\} \+\$\{[A-Za-z0-9_$]+\} lines\]$/.test(literal.text);
 }
 
 function replaceTemplateLiteralTextParts(parts, en, zh) {
@@ -989,9 +998,17 @@ function installTurnDurationBackgroundLocalization() {
 
 function installPastedTextProtocolRepair() {
     // 旧版补丁曾把粘贴附件协议中的 `lines]` 翻译为 `行]`，但解析器只接受英文。
-    // 仅修复 Pasted text 模板生成器，使已 patch 的安装可通过再次安装原地恢复。
+    // 修复 Pasted text 模板生成器，使已 patch 的安装可通过再次安装原地恢复。
+    // 匹配两种形态：字面量 `[Pasted text #${id} +${n} 行]` 和变量形式 `[${r} #${e} +${n} 行]`。
+    // 变量形式（UJ 函数用 r="Pasted text"）原本未被匹配到，导致修复落空。
+    // 字面量形式：`[Pasted text #${id} +${n} 行]`
     tryRegexReplace(
         /(`\[Pasted text #\$\{[A-Za-z0-9_$]+\} \+\$\{[A-Za-z0-9_$]+\} )行(\]`)/g,
+        (_match, prefix, suffix) => `${prefix}lines${suffix}`
+    );
+    // 变量形式：`[${r} #${e} +${n} 行]`
+    tryRegexReplace(
+        /(`\[\$\{[A-Za-z0-9_$]+\} #\$\{[A-Za-z0-9_$]+\} \+\$\{[A-Za-z0-9_$]+\} )行(\]`)/g,
         (_match, prefix, suffix) => `${prefix}lines${suffix}`
     );
 }

@@ -95,6 +95,23 @@ test("pasted text protocol stays parseable while visible line counts are localiz
   assert.match(patched, /function lineCount\(count,unit="line"\)\{if\(count<=0\)return"";return`… \+\$\{count\} 行`\}/);
 });
 
+test("variable-form paste label (UJ function) is protected and repaired", () => {
+  // UJ 函数用变量 r="Pasted text" 而非字面量，isProtectedProtocolLiteral 原先漏掉它，
+  // 翻译表把 lines] 改成 行]，installPastedTextProtocolRepair 的正则也匹配不到，导致
+  // 占位符生成中文 行 而解析器只认英文 lines，粘贴内容丢失。
+  const patched = patchFixture([
+    'function UJ(e,n,r="Pasted text"){if(n===0)return`[${r} #${e}]`;return`[${r} #${e} +${n} lines]`}',
+    'function UJdamaged(e,n,r="Pasted text"){if(n===0)return`[${r} #${e}]`;return`[${r} #${e} +${n} 行]`}',
+    'function parsePaste(text){return /\\[(Pasted text|Image) #(\\d+)(?: \\+\\d+ lines)?\\]/g.test(text)}',
+    '',
+  ]);
+
+  // 变量形式也应被保护，不被翻译表改成 行]
+  assert.equal(patched.includes('+${n} 行]'), false, patched);
+  // repair 应把受损的变量形式 行] 改回 lines]
+  assert.equal((patched.match(/`\[\$\{r\} #\$\{e\} \+\$\{n\} lines\]`/g) || []).length, 2, patched);
+});
+
 test("visible Running labels are localized without changing tool metadata", () => {
   const patched = patchFixture([
     'let shell=ui.jsx(Text,{dimColor:true,children:"Running\\u2026 "});',
