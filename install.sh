@@ -397,19 +397,10 @@ select_safe_plugin_fallback() {
     esac
 }
 
-register_official_plugin() {
-    local claude_cli marketplace_source
-    local plugin_was_installed=false
-    local plugin_install_failed=false
-    local initial_settings_state
-
-    claude_cli="$(find_real_claude_binary)"
-    if [ -z "$claude_cli" ]; then
-        select_safe_plugin_fallback "未找到可用的 claude CLI"
-        return 0
-    fi
-
-    initial_settings_state="$(official_plugin_settings_state)"
+# register_official_plugin 的 disabled 分支（批次 3a 拆分；
+# REGISTER_PLUGIN_DONE=true 表示主流程应立即 return 0；通过全局变量通信以保持 set -e 语义不变）
+register_plugin_handle_disabled_state() {
+    REGISTER_PLUGIN_DONE=false
     if [ "$initial_settings_state" = "disabled" ] && [ -f "$OFFICIAL_FALLBACK_MARKER" ]; then
         PLUGIN_RUNTIME_MODE="official-retry"
         if reconcile_standalone_hooks && [ "$(official_plugin_settings_state)" = "enabled" ]; then
@@ -417,6 +408,7 @@ register_official_plugin() {
             echo -e "${YELLOW}上次因校验失败临时停用了官方入口；本次重新尝试正式插件注册。${NC}"
         else
             select_safe_plugin_fallback "无法安全切换到正式插件重试状态"
+            REGISTER_PLUGIN_DONE=true
             return 0
         fi
     fi
@@ -431,36 +423,13 @@ register_official_plugin() {
         fi
         PLUGIN_RUNTIME_MODE="disabled"
         echo -e "${YELLOW}官方插件已明确停用；已保留用户选择，不调用 install，也不加载备用 Hook。${NC}"
+        REGISTER_PLUGIN_DONE=true
         return 0
     fi
+}
 
-    if [ "$UPDATE_ONLY" = true ] && verify_official_plugin_registration "$claude_cli"; then
-        mark_official_plugin_verified
-        echo -e "${GREEN}官方插件注册已验证（user scope）${NC}"
-        return 0
-    fi
-
-    if [ ! -f "$PLUGIN_SRC/.claude-plugin/plugin.json" ]; then
-        select_safe_plugin_fallback "安装包缺少官方插件清单"
-        return 0
-    fi
-
-    if [ ! -f "$SCRIPT_DIR/.claude-plugin/marketplace.json" ]; then
-        if ! official_user_plugin_installed "$claude_cli"; then
-            select_safe_plugin_fallback "安装包缺少插件市场清单，且未检测到已安装的官方插件"
-            return 0
-        fi
-        "$claude_cli" plugin marketplace update "$OFFICIAL_MARKETPLACE_NAME" >/dev/null 2>&1 || true
-        "$claude_cli" plugin update "$OFFICIAL_PLUGIN_ID" --scope user >/dev/null 2>&1 || true
-        if verify_official_plugin_registration "$claude_cli"; then
-            mark_official_plugin_verified
-            echo -e "${GREEN}官方插件注册已验证（user scope）${NC}"
-        else
-            select_safe_plugin_fallback "官方插件自动更新后校验失败"
-        fi
-        return 0
-    fi
-
+# register_official_plugin 的安装与验证尾段（批次 3a 拆分；主流程调用后即结束）
+register_plugin_install_and_verify() {
     marketplace_source="$(official_marketplace_source)"
     if official_user_plugin_installed "$claude_cli"; then
         plugin_was_installed=true
@@ -501,6 +470,54 @@ register_official_plugin() {
     else
         select_safe_plugin_fallback "安装后列表校验失败"
     fi
+}
+
+register_official_plugin() {
+    local claude_cli marketplace_source
+    local plugin_was_installed=false
+    local plugin_install_failed=false
+    local initial_settings_state
+
+    claude_cli="$(find_real_claude_binary)"
+    if [ -z "$claude_cli" ]; then
+        select_safe_plugin_fallback "未找到可用的 claude CLI"
+        return 0
+    fi
+
+    initial_settings_state="$(official_plugin_settings_state)"
+    register_plugin_handle_disabled_state
+    if [ "$REGISTER_PLUGIN_DONE" = true ]; then
+        return 0
+    fi
+
+    if [ "$UPDATE_ONLY" = true ] && verify_official_plugin_registration "$claude_cli"; then
+        mark_official_plugin_verified
+        echo -e "${GREEN}官方插件注册已验证（user scope）${NC}"
+        return 0
+    fi
+
+    if [ ! -f "$PLUGIN_SRC/.claude-plugin/plugin.json" ]; then
+        select_safe_plugin_fallback "安装包缺少官方插件清单"
+        return 0
+    fi
+
+    if [ ! -f "$SCRIPT_DIR/.claude-plugin/marketplace.json" ]; then
+        if ! official_user_plugin_installed "$claude_cli"; then
+            select_safe_plugin_fallback "安装包缺少插件市场清单，且未检测到已安装的官方插件"
+            return 0
+        fi
+        "$claude_cli" plugin marketplace update "$OFFICIAL_MARKETPLACE_NAME" >/dev/null 2>&1 || true
+        "$claude_cli" plugin update "$OFFICIAL_PLUGIN_ID" --scope user >/dev/null 2>&1 || true
+        if verify_official_plugin_registration "$claude_cli"; then
+            mark_official_plugin_verified
+            echo -e "${GREEN}官方插件注册已验证（user scope）${NC}"
+        else
+            select_safe_plugin_fallback "官方插件自动更新后校验失败"
+        fi
+        return 0
+    fi
+
+    register_plugin_install_and_verify
 }
 
 reconcile_standalone_hooks() {
