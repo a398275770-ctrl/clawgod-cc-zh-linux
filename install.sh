@@ -629,33 +629,26 @@ ccswitch_build_provider_meta_updates() {
     node "$SCRIPT_DIR/scripts/ccswitch-build-provider-meta-updates.js"
 }
 
-sync_ccswitch_common_config() {
-    local overlay_content="$1"
-    local db_file="$HOME/.cc-switch/cc-switch.db"
-    local consent status answer consent_source
-    local current_file overlay_file merged_file providers_file provider_sql_file
-    local backup_file escaped_merged provider_update_sql provider_sync_summary
-    local provider_sync_changed provider_sync_total provider_sync_skipped provider_sync_rest
+# sync_ccswitch_common_config 的四个阶段辅助函数（批次 3a 拆分；
+# 通过调用方 local 变量的动态作用域通信，普通语句调用，set -e 与 return 语义守恒；
+# CCSWITCH_SYNC_DONE=true 表示主流程应立即 return 0）
 
-    [ -f "$db_file" ] || return 0
-
-    if ! command -v sqlite3 >/dev/null 2>&1; then
-        echo -e "${YELLOW}检测到 CC Switch，但未找到 sqlite3，通用配置未同步；可运行插件的 zh-cn-setup（Node.js 22.13+ 内置 SQLite）或在 CC Switch 中手动合并。${NC}" >&2
-        return 0
-    fi
-
+ccswitch_sync_prepare_files() {
     current_file="$(mktemp "${TMPDIR:-/tmp}/cczh-ccswitch-current.XXXXXX")"
     overlay_file="$(mktemp "${TMPDIR:-/tmp}/cczh-ccswitch-overlay.XXXXXX")"
     merged_file="$(mktemp "${TMPDIR:-/tmp}/cczh-ccswitch-merged.XXXXXX")"
     providers_file="$(mktemp "${TMPDIR:-/tmp}/cczh-ccswitch-providers.XXXXXX")"
     provider_sql_file="$(mktemp "${TMPDIR:-/tmp}/cczh-ccswitch-providers-sql.XXXXXX")"
     printf "%s" "$overlay_content" > "$overlay_file"
+}
 
+ccswitch_sync_read_status() {
     if ! sqlite3 "$db_file" "select value from settings where key='common_config_claude';" > "$current_file" 2>/dev/null; then
         rm -f "$current_file" "$overlay_file" "$merged_file" "$providers_file" "$provider_sql_file" 2>/dev/null || true
         if [ "$UPDATE_ONLY" != true ] && [ "$SKIP_BANNER" != "1" ]; then
             echo -e "${YELLOW}检测到 CC Switch，但无法读取通用配置表，已跳过自动同步。${NC}"
         fi
+        CCSWITCH_SYNC_DONE=true
         return 0
     fi
 
@@ -665,12 +658,14 @@ sync_ccswitch_common_config() {
             ! sqlite3 "$db_file" "select hex(id) || char(9) || hex(meta) from providers where app_type='claude';" > "$providers_file" 2>/dev/null || \
             [ ! -s "$providers_file" ]; then
             rm -f "$current_file" "$overlay_file" "$merged_file" "$providers_file" "$provider_sql_file" 2>/dev/null || true
+            CCSWITCH_SYNC_DONE=true
             return 0
         fi
         provider_sync_summary="$(ccswitch_build_provider_meta_updates "$providers_file" "$provider_sql_file" 2>/dev/null || true)"
         provider_sync_changed="${provider_sync_summary%% *}"
         if [ "${provider_sync_changed:-0}" = "0" ]; then
             rm -f "$current_file" "$overlay_file" "$merged_file" "$providers_file" "$provider_sql_file" 2>/dev/null || true
+            CCSWITCH_SYNC_DONE=true
             return 0
         fi
         status="needs-sync"
@@ -681,9 +676,12 @@ sync_ccswitch_common_config() {
             echo -e "${YELLOW}检测到 CC Switch，但 common_config_claude 不是有效 JSON，已跳过自动同步。${NC}"
             ccswitch_manual_steps
         fi
+        CCSWITCH_SYNC_DONE=true
         return 0
     fi
+}
 
+ccswitch_sync_resolve_consent() {
     case "$CCSWITCH_SYNC_CHOICE" in
         1|true|TRUE|yes|YES|y|Y)
             consent="allow"
@@ -719,10 +717,13 @@ sync_ccswitch_common_config() {
                 echo -e "${YELLOW}如需授权自动同步，可运行：ZH_CN_CCSWITCH_SYNC=1 ./install.sh${NC}"
                 ccswitch_manual_steps
             fi
+            CCSWITCH_SYNC_DONE=true
             return 0
         fi
     fi
+}
 
+ccswitch_sync_apply() {
     if [ "$consent" != "allow" ]; then
         rm -f "$current_file" "$overlay_file" "$merged_file" "$providers_file" "$provider_sql_file" 2>/dev/null || true
         if [ "$consent_source" = "prompt" ] && [ "$SKIP_BANNER" != "1" ]; then
@@ -782,6 +783,37 @@ sync_ccswitch_common_config() {
     fi
 
     rm -f "$current_file" "$overlay_file" "$merged_file" "$providers_file" "$provider_sql_file" 2>/dev/null || true
+}
+
+sync_ccswitch_common_config() {
+    local overlay_content="$1"
+    local db_file="$HOME/.cc-switch/cc-switch.db"
+    local consent status answer consent_source
+    local current_file overlay_file merged_file providers_file provider_sql_file
+    local backup_file escaped_merged provider_update_sql provider_sync_summary
+    local provider_sync_changed provider_sync_total provider_sync_skipped provider_sync_rest
+
+    [ -f "$db_file" ] || return 0
+
+    if ! command -v sqlite3 >/dev/null 2>&1; then
+        echo -e "${YELLOW}检测到 CC Switch，但未找到 sqlite3，通用配置未同步；可运行插件的 zh-cn-setup（Node.js 22.13+ 内置 SQLite）或在 CC Switch 中手动合并。${NC}" >&2
+        return 0
+    fi
+
+    ccswitch_sync_prepare_files
+
+    CCSWITCH_SYNC_DONE=false
+    ccswitch_sync_read_status
+    if [ "$CCSWITCH_SYNC_DONE" = true ]; then
+        return 0
+    fi
+
+    ccswitch_sync_resolve_consent
+    if [ "$CCSWITCH_SYNC_DONE" = true ]; then
+        return 0
+    fi
+
+    ccswitch_sync_apply
 }
 
 merge_settings() {
