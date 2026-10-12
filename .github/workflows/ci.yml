@@ -46,6 +46,12 @@ jobs:
       - name: Version alignment
         run: node scripts/check-version-alignment.js
 
+      - name: Structure checks (S1/S2)
+        run: node scripts/check-structure.js
+
+      - name: Coverage gate
+        run: node scripts/check-coverage.js
+
       - name: sh/ps1 pair-change check
         if: github.event_name == 'pull_request'
         run: node scripts/check-sh-ps1-pair.js --base "${{ github.event.pull_request.base.sha }}"

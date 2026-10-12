@@ -34,6 +34,7 @@ run "文档死链/必填节"        node scripts/check-doc-links.js
 run "文件大小上限"           node scripts/check-file-size.js
 run "版本声明点对齐"         node scripts/check-version-alignment.js
 run "文档派生计数同步"       node scripts/sync-doc-derived-counts.js --check
+run "结构约束（S1/S2）"      node scripts/check-structure.js
 
 # sh/ps1 成对变更：仅在能解析 base 时检查（本地无 origin/main 时跳过并提示）
 if git rev-parse --verify origin/main >/dev/null 2>&1; then
@@ -51,8 +52,9 @@ run "plugin 负载一致性"      bash -c '
 
 if [ "$FAST" = "0" ]; then
   run "全量测试"             node --test tests/
+  run "覆盖率门禁"           node scripts/check-coverage.js
 else
-  echo "── 全量测试：跳过（--fast / SKIP_TESTS=1）"
+  echo "── 全量测试+覆盖率：跳过（--fast / SKIP_TESTS=1）"
 fi
 
 echo ""

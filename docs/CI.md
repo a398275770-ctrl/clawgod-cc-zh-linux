@@ -34,8 +34,10 @@
   - `node scripts/check-file-size.js`（文件大小上限 T1）
   - `node scripts/check-version-alignment.js`（版本声明点对齐）
   - `node scripts/check-sh-ps1-pair.js --base <pr-base>`（双端成对变更，仅 PR 触发）
+  - `node scripts/check-structure.js`（结构约束 S1/S2，2026-10-12 阶段 5）
+  - `node scripts/check-coverage.js`（覆盖率门禁，整体+关键模块阈值，2026-10-12 阶段 5）
 - 本地门禁总入口：`bash scripts/check-all.sh`（清单详见 `docs/GATES.md`）。
-- 覆盖率门禁：待阶段 5 接入（决策 D4 = node 内置覆盖率，零依赖）。
+- 覆盖率门禁：已接入（2026-10-12 阶段 5，决策 D4 = node 内置覆盖率，阈值见 scripts/coverage-thresholds.json）。
 
 ## 5. 变更历史
 

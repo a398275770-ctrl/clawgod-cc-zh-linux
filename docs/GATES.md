@@ -31,6 +31,8 @@ bash scripts/install-git-hooks.sh   # 安装 pre-push 钩子（推送前自动�
 | 版本声明点对齐 | `node scripts/check-version-alignment.js` | CI + check-all | manifest.json / plugin.json / CHANGELOG 顶部版本不一致 | 按 CLAUDE.md 发布流程同步 3 处 | 无 |
 | sh/ps1 成对变更（D3） | `node scripts/check-sh-ps1-pair.js --base <ref>` | CI：PR + check-all | 双端实现只改了一端 | 把同一逻辑同步到另一端 | commit message 含 `pair-exempt: <原因>` |
 | plugin 负载一致性 | `bash scripts/check-all.sh`（内嵌） | check-all（pre-push） | 根 6 文件与 plugin/ 副本不一致 | `bash scripts/sync-payload.sh` | 无 |
+| 结构约束（S1 安装脚本禁长 heredoc / S2 禁仓库外引用） | `node scripts/check-structure.js` | CI + check-all | 架构约束被违反（批次 3a 成果回退或 payload 不自包含） | 报错含逐条修复指引 | 无 |
+| 覆盖率门禁（D4） | `node scripts/check-coverage.js` | CI + check-all 全量模式 | 整体或关键模块覆盖率低于阈值 | 补测试；阈值不合理时改 scripts/coverage-thresholds.json 并在 PR 说明 | 无（只能补测试或调阈值） |
 
 ## 豁免机制（统一约定）
 
