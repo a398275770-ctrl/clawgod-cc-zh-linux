@@ -82,7 +82,7 @@ native 形态：bun-binary-io.js（提取→patch-cli.js→写回）；bytecode 
 |---|---|---|---|---|
 | 批次 1 | 文档体系 | 阶段 2 全部：AGENTS.md 重写、ARCHITECTURE.md、docs/index.md、QUALITY_SCORE.md、core-beliefs.md、旧计划归档 | 计划确认 | `git revert` 文档提交；不影响代码 |
 | 批次 2 | 门禁与工具链 | 阶段 3：lint 方案（D2）、本地 pre-push hook、文档 lint、发布防呆校验、marketplace 版本核对（TD-VER-001） | 批次 1（文档索引存在后文档 lint 才可校验） | 逐 hook/lint 可独立关闭；CI 配置单独 revert |
-| 批次 3 | 安装器与 patch 引擎重构 | 阶段 4：install.sh heredoc 下沉（TD-COMPLEX-001）、sh/ps1 收敛评估（TD-COMPLEX-002，D3）、patch-cli.js 拆分（TD-COMPLEX-003）、巨型测试拆分（TD-COMPLEX-004） | 批次 2（护栏就位）+ 现有 smoke/注册测试作为行为守恒对拍 | 每子任务独立提交可单独 revert；payload 同步机制保持字节一致 |
+| 批次 3 | 安装器与 patch 引擎重构 | 阶段 4：install.sh heredoc 下沉（TD-COMPLEX-001）、patch-cli.js 拆分（TD-COMPLEX-003）、巨型测试拆分（TD-COMPLEX-004）。~~sh/ps1 收敛~~ D3 已决策不收敛，改为批次 2 的成对变更检查门禁 | 批次 2（护栏就位）+ 现有 smoke/注册测试作为行为守恒对拍 | 每子任务独立提交可单独 revert；payload 同步机制保持字节一致 |
 | 批次 4 | 测试度量与补全 | 阶段 5：覆盖率工具接入（D4）、覆盖率门禁、跳过用例登记清理（TD-QA-005）、结构测试 | 批次 3 完成（度量在重构后代码上） | 门禁阈值可调；测试新增不影响业务代码 |
 
 ## 5. 五阶段任务拆解
@@ -115,13 +115,14 @@ native 形态：bun-binary-io.js（提取→patch-cli.js→写回）；bytecode 
 | 编号 | 问题 | 为什么需要人判断 | 影响范围 |
 |---|---|---|---|
 | D1 | ~~是否生成 GitHub CI / 平台 / 发布方式~~ | **已不适用**：框架判定为其他类型（§3.4），无需提问 | 阶段 3 |
-| D2 | 是否引入 `package.json` 承载 lint/coverage 工具链？零 npm 依赖是本项目显式特性；lint 可用零依赖自研脚本替代，但生态工具（eslint/c8）需要 package.json | 项目特性取舍，不可从代码推断 | 阶段 3 全部 lint/覆盖率方案的形态 |
-| D3 | install.sh / install.ps1 双实现是否收敛？方案 A：公共逻辑下沉 Node 脚本，双端薄壳（工作量大、双端行为风险）；方案 B：保持双实现，只建立「变更必须成对」的检查门禁 | 工作量 × 风险 × 收益的权衡 | 批次 3 范围大小 |
-| D4 | 覆盖率工具选型：node 内置 `--experimental-test-coverage`（零依赖、功能基础）vs c8（需 D2=是） | 依赖 D2 | 阶段 5 |
-| D5 | 7 个跳过测试的处理倾向：补环境使其可跑 vs 显式豁免登记 | 需确认跳过原因是否已知 | 阶段 5 |
+| D2 | 是否引入 `package.json` 承载 lint/coverage 工具链？ | **已决策（2026-10-12）：不引入**。保持零依赖特色，lint/检查工具自研小脚本 | 阶段 3 |
+| D3 | install.sh / install.ps1 双实现是否收敛？ | **已决策（2026-10-12）：保持双实现 + 加「改动必须成对」自动检查**（工作量小、风险低） | 批次 3 不再含收敛重构 |
+| D4 | 覆盖率工具选型 | **已决策（2026-10-12）：Node 内置 `--experimental-test-coverage`**（零依赖） | 阶段 5 |
+| D5 | 7 个跳过测试的处理 | **已决策（2026-10-12）：先登记原因，不强行修** | 阶段 5 |
 
 ## 7. 进度与决策日志
 
 | 日期 | 阶段 | 动作 | 关联 commit | 决策与理由 |
 |---|---|---|---|---|
-| 2026-10-12 | 1 | 全量扫描；产出计划/台账/CI.md；建 harnessing 分支 | （本次提交） | 框架判定=其他；跳过三问；现有 CI 仅审计 |
+| 2026-10-12 | 1 | 全量扫描；产出计划/台账/CI.md；建 harnessing 分支 | c9c3b46 | 框架判定=其他；跳过三问；现有 CI 仅审计 |
+| 2026-10-12 | 1 | 用户确认 D2-D5 决策 | （本次提交） | D2=不引入 package.json（零依赖自研脚本）；D3=保持双实现+成对变更检查门禁；D4=node 内置覆盖率；D5=跳过测试先登记不修 |
