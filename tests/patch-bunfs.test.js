@@ -112,6 +112,24 @@ test("patch-bunfs: --restore 字节级还原并清理备份与标记", () => {
   }
 });
 
+test("patch-bunfs: 仅命中恒等翻译的 chunk 零改动且不产生备份", () => {
+  const dir = makeClawgodFixture();
+  try {
+    // 找一个恒等翻译（en === zh）构造零改动 chunk
+    const identity = TRANSLATIONS.find((t) => t && t.en && t.en === t.zh && /^[\x20-\x7e]+$/.test(t.en));
+    assert.ok(identity, "翻译表中应存在恒等条目");
+    fs.writeFileSync(
+      path.join(dir, "bunfs", "chunk-identity.js"),
+      `const x = ${JSON.stringify(identity.en)};\nexport { x };\n`
+    );
+    const r = run(dir);
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.ok(!fs.existsSync(path.join(dir, "bunfs.zh-cn-backup", "chunk-identity.js")), "零改动 chunk 不应留下备份");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("patch-bunfs: bunfs 目录不存在时非零退出且报错含修复指引", () => {
   const r = spawnSync("node", [SCRIPT, "/tmp/definitely-not-exist-bunfs"], { encoding: "utf8" });
   assert.strictEqual(r.status, 2);

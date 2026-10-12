@@ -99,7 +99,17 @@ function renderAction(tier, notes) {
   return "按备注降级";
 }
 
+function loadClawgodSupport() {
+  const file = path.join(__dirname, "clawgod-support.json");
+  try {
+    return loadJson(file);
+  } catch {
+    return {};
+  }
+}
+
 function buildMarkdown(config, compat) {
+  const clawgod = loadClawgodSupport();
   const resultMap = new Map(compat.results.map((entry) => [entry.version, entry]));
   const npmStable = config.support?.npm?.stable || {};
   const macosInstaller = config.support?.macosOfficialInstaller || {};
@@ -239,6 +249,12 @@ function buildMarkdown(config, compat) {
             windowsNativeUnsupported
           )} | - | ${windowsNativeUnsupported.notes || "-"} |`,
         ]),
+    "",
+    "## Third-party Wrapper Layouts",
+    "",
+    "| 形态 | 布局特征 | 已验证版本 | 验证方式 | 备注 |",
+    "| --- | --- | --- | --- | --- |",
+    `| clawgod bunfs | $CLAWGOD_DIR/{cli.cjs, bunfs/chunk-*.js} | ${clawgod.verifiedVersion || "-"} | ${clawgod.verification || "-"} | ${clawgod.notes || "-"} |`,
     "",
     "## Compatibility Matrix",
     "",

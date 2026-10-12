@@ -124,6 +124,7 @@ let patched = 0, failed = 0;
 for (const name of candidates) {
   const chunk = path.join(bunfsDir, name);
   const backup = path.join(backupDir, name);
+  const backupPreExisted = fs.existsSync(backup); // noop 清理备份时保护既有干净副本
   try { fs.unlinkSync(statusTmp); } catch {}
   const r = spawnSync(
     process.execPath,
@@ -137,7 +138,11 @@ for (const name of candidates) {
   if ((status === "ok" || status === "partial") && count > 0) {
     patched++;
   } else if (status === "noop") {
-    // 无新增（可能已被 patch 过）——保底：若备份是本次误建且未改动，保留备份无妨
+    // 零改动（如仅命中恒等翻译）：删除本次误建的备份，避免全量 ~50MB 无效备份；
+    // 既有备份（可能是唯一干净副本）绝不删除
+    if (!backupPreExisted) {
+      try { fs.unlinkSync(backup); } catch {}
+    }
   } else {
     failed++;
     console.error(`patch-bunfs: ${name} patch 失败（status=${status}），已回滚该 chunk`);

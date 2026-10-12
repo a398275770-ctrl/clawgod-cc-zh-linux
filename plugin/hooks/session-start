@@ -582,6 +582,25 @@ elif [ -f "$CLI_FILE" ]; then
     fi
 fi
 
+# clawgod bunfs 自动 re-patch（独立于 npm/native 路径；marker 在 clawgod 侧，patch-bunfs 自查幂等）
+CLAWGOD_BUNFS=""
+if [ -f "$PLUGIN_ROOT/scripts/detect-clawgod.js" ]; then
+    CLAWGOD_BUNFS="$(node "$PLUGIN_ROOT/scripts/detect-clawgod.js" 2>/dev/null || true)"
+fi
+if [ -n "$CLAWGOD_BUNFS" ] && [ -f "$PLUGIN_ROOT/scripts/patch-bunfs.js" ]; then
+    CG_RESULT_LINE="$(node "$PLUGIN_ROOT/scripts/patch-bunfs.js" "${CLAWGOD_BUNFS#clawgod-bunfs:}" 2>/dev/null | grep '^RESULT ' | tail -1 || true)"
+    CG_STATUS="$(printf '%s' "$CG_RESULT_LINE" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d.slice(7)).status)}catch{console.log("")}})' 2>/dev/null || true)"
+    case "$CG_STATUS" in
+        ok)
+            CG_PATCHED="$(printf '%s' "$CG_RESULT_LINE" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d.slice(7)).patched)}catch{console.log("0")}})' 2>/dev/null || echo "0")"
+            AUTO_PATCH_MSG="${AUTO_PATCH_MSG}（已自动 patch clawgod bunfs ${CG_PATCHED} 个 chunk）"
+            ;;
+        partial)
+            AUTO_PATCH_MSG="${AUTO_PATCH_MSG}（clawgod bunfs 部分汉化，失败 chunk 已回滚，CLI 保持可用）"
+            ;;
+    esac
+fi
+
 repair_settings_from_cache
 
 # Skill/插件命令说明增量汉化（后台异步，不阻塞 hook 输出；新装项下次启动生效）

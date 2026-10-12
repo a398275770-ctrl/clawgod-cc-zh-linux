@@ -591,6 +591,37 @@ function runDoctor(options = {}) {
     recommendations.push(`在本仓库运行 ./install.sh 安装插件`);
   }
 
+  // clawgod bunfs 形态检测（独立于 npm/native）
+  {
+    const clawgodDir = process.env.CLAWGOD_DIR || path.join(homeDir, ".clawgod");
+    const clawgodMarker = path.join(clawgodDir, ".zh-cn-patched");
+    const clawgodBackup = path.join(clawgodDir, "bunfs.zh-cn-backup");
+    const isClawgodLayout =
+      fs.existsSync(path.join(clawgodDir, "cli.cjs")) &&
+      fs.existsSync(path.join(clawgodDir, "bunfs"));
+    if (isClawgodLayout) {
+      let detail = `检测到 clawgod 布局 (${clawgodDir})`;
+      let status = "warn";
+      if (fs.existsSync(clawgodMarker)) {
+        try {
+          const m = readJson(clawgodMarker);
+          detail = `clawgod bunfs 已汉化：版本 ${m.version || "?"}，${m.patched || "?"} 个 chunk${m.failed ? `，${m.failed} 个失败已回滚` : ""}`;
+          status = m.failed ? "warn" : "ok";
+        } catch {
+          detail = "clawgod 标记文件损坏";
+        }
+      } else if (fs.existsSync(clawgodBackup)) {
+        detail = "clawgod 存在备份但无 patch 标记（可能卸载中断）";
+      } else {
+        detail = "clawgod 尚未汉化；运行 ./install.sh 生效";
+      }
+      add("clawgod", "clawgod bunfs (Layer 4)", status, detail);
+      if (status !== "ok") {
+        recommendations.push("clawgod 环境运行 ./install.sh 完成 bunfs 汉化");
+      }
+    }
+  }
+
   if (fs.existsSync(settingsFile)) {
     try {
       const settings = readJson(settingsFile);

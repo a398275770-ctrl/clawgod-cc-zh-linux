@@ -45,5 +45,6 @@ user-prompt-submit hook ──> /chinese /english 会话内切换
 | 官方 native binary（macOS/Linux） | `scripts/native-repair.js` | `bun-binary-io.js` 提取 → patch-cli.js → 写回（macOS 含 codesign） |
 | Windows bytecode | `scripts/patch-bytecode.js` | 字节码常量池占位内写入中文 |
 | Windows npm | `install.ps1` | 同 npm 路径 |
+| clawgod bunfs（第三方封装，D6/D7） | `scripts/detect-clawgod.js` + `scripts/patch-bunfs.js` | 逐 chunk 复用 patch-cli.js 引擎；备份/回滚按 chunk 维度；标记 `$CLAWGOD_DIR/.zh-cn-patched` |
 
 版本支持窗口见 `docs/support-matrix.md`（由 `scripts/generate-support-matrix.js` 生成，禁止手改）。

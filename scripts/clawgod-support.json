@@ -1,0 +1,6 @@
+{
+  "$schema-note": "clawgod bunfs 形态的本机验证记录。改 validatedVersion 前必须先在真实环境跑通 install.sh 的 clawgod patch 与卸载恢复。",
+  "verifiedVersion": "2.1.296",
+  "verification": "本机自验证（2026-10-12）：dry-run 预筛 2341 chunk 全命中；patch/回滚/幂等用例 6 例通过",
+  "notes": "第三方封装形态，非官方安装器；patch 引擎复用 npm 路径的 patch-cli.js"
+}

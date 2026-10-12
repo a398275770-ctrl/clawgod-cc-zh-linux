@@ -21,6 +21,8 @@ const payloadPairs = [
   { source: "scripts/zh-cn-doctor.js", mirror: "plugin/scripts/zh-cn-doctor.js" },
   { source: "scripts/patch-bytecode.js", mirror: "plugin/scripts/patch-bytecode.js" },
   { source: "scripts/native-repair.js", mirror: "plugin/scripts/native-repair.js" },
+  { source: "scripts/detect-clawgod.js", mirror: "plugin/scripts/detect-clawgod.js" },
+  { source: "scripts/patch-bunfs.js", mirror: "plugin/scripts/patch-bunfs.js" },
 ];
 
 function fail(message) {
