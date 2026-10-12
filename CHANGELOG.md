@@ -6,6 +6,24 @@
 - **次版本号**：新增功能或显著改进（比如新增 patch、新增翻译）
 - **修订号**：Bug 修复和小调整（比如修正一条翻译）
 
+## [2.24.0] - 2026-10-12
+
+### 新增
+
+- clawgod 安装形态适配：检测 clawgod bunfs 解包结构并自动分派汉化补丁，覆盖逐 chunk patch 引擎、session-start hook 自动重 patch、诊断命令与矩阵登记。
+- clawgod bunfs 卸载还原分支：卸载时逐 chunk 还原 bunfs 到原始状态。
+- harness 工程化门禁：覆盖率门禁、结构测试（安装脚本禁长 heredoc / 禁仓库外 require）、文件大小上限、版本声明点对齐、文档死链校验、sh/ps1 成对变更检查，一条命令本地跑全量门禁（`check-all.sh`）。
+
+### 改进
+
+- 安装脚本拆分为编排 + 阶段函数，消除超长 heredoc，满足文件大小与结构门禁。
+- 文档对齐 harness 改造完成：AGENTS.md 重写为地图形态，ARCHITECTURE.md 与 core-beliefs.md 落地，计划归档至 docs/exec-plans/completed/。
+
+### 修复
+
+- **粘贴占位符协议被翻译破坏导致粘贴内容丢失**：翻译表 ` lines]→行]` 批量替换误伤 UJ 占位符生成器，解析正则只认英文 `lines`，粘贴多行内容时模型只收到占位符字面量。修复三层防护：翻译表加 `skipPatch: true`；`isProtectedProtocolLiteral` 与 `installPastedTextProtocolRepair` 补充变量形式 `[${r} #${e}…]` 正则匹配。
+- clawgod bunfs 已汉化 chunk 重跑误判与 revision 计算修正。
+
 ## [2.23.0] - 2026-10-10
 
 ### 新增
