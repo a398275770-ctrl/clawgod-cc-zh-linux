@@ -58,7 +58,7 @@ test("patch-bunfs: patch 含文案 chunk、备份原始文件、写标记、跳�
     const marker = JSON.parse(fs.readFileSync(path.join(dir, ".zh-cn-patched"), "utf8"));
     assert.strictEqual(marker.version, "2.1.296");
     assert.strictEqual(marker.patched, 1);
-    assert.ok(marker.revision, "标记应含 patch revision");
+    assert.match(marker.revision, /^[0-9a-f]{16}$/, "revision 应为 compute-patch-revision 的 16 位哈希（source 后调用函数，非 unknown）");
 
     // 语法校验：patch 结果必须是合法 JS
     const check = spawnSync(process.execPath, ["--check", path.join(dir, "bunfs", "chunk-with-ui.js")], { encoding: "utf8" });

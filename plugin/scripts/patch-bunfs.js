@@ -75,7 +75,12 @@ const version = fs.existsSync(versionFile)
   ? fs.readFileSync(versionFile, "utf8").trim() || "unknown"
   : "unknown";
 
-const revR = spawnSync("bash", [COMPUTE_REVISION, REPO_ROOT], { encoding: "utf8" });
+// compute-patch-revision.sh 只定义函数、无独立入口：source 后调用（与 install.sh 一致）
+const revR = spawnSync(
+  "bash",
+  ["-c", `source "${COMPUTE_REVISION}" && compute_patch_revision "${REPO_ROOT}"`],
+  { encoding: "utf8" }
+);
 const revision = (revR.stdout || "").trim() || "unknown";
 
 // 幂等：同版本同 revision 已 patch 过
@@ -137,6 +142,8 @@ for (const name of candidates) {
 
   if ((status === "ok" || status === "partial") && count > 0) {
     patched++;
+  } else if (status === "partial" && count === 0) {
+    // 已汉化的 chunk 重跑：规则匹配不到中文源，0 处替换——视为干净跳过，非失败
   } else if (status === "noop") {
     // 零改动（如仅命中恒等翻译）：删除本次误建的备份，避免全量 ~50MB 无效备份；
     // 既有备份（可能是唯一干净副本）绝不删除
@@ -154,10 +161,16 @@ for (const name of candidates) {
   }
 }
 
+// 覆盖面以备份目录中的 chunk 数为准：幂等重跑后 patched 仍反映真实汉化规模
+let localized = patched;
+try {
+  localized = fs.readdirSync(backupDir).length;
+} catch {}
+
 try {
   fs.writeFileSync(
     markerFile,
-    JSON.stringify({ version, revision, patched, failed, date: new Date().toISOString() }, null, 2) + "\n"
+    JSON.stringify({ version, revision, patched: localized, failed, date: new Date().toISOString() }, null, 2) + "\n"
   );
 } catch (e) {
   console.error(`patch-bunfs: 写入标记失败：${e.message}`);
