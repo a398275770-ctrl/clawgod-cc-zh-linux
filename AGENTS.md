@@ -1,53 +1,52 @@
-# claude-code-zh-cn
+# AGENTS.md
 
-Claude Code CLI 中文本地化插件。
+> 本文件是**内容目录**，不是百科全书。需要细节时，按下方指引跳转。
 
-## 项目结构
+## 这是什么项目
 
-- `patch-cli.sh` — CLI 硬编码文字 patch（被 install.sh 和 session-start hook 调用）
-- `cli-translations.json` — 2314 条 UI 翻译对照表（英文→中文），patch-cli.sh 从此文件读取
-- `install.sh` / `uninstall.sh` — 安装/卸载脚本
-- `compute-patch-revision.sh` — patch 规则指纹计算，供 install.sh 和 session-start hook 共用
-- `settings-overlay.json` — 合并到 settings.json 的中文设置（只含 language、spinnerTipsEnabled 等独有配置，**不含** verbs 和 tips 数据）
-- `plugin/` — 插件（manifest、hooks、commands 命令 stub、output-styles；`hooks/user-prompt-submit.js` 实现 `/chinese` `/english` 切换）
-- `verbs/zh-CN.json` — 187 个 spinner 动词翻译（**唯一数据源**）
-- `tips/zh-CN.json` — 41 条 spinner 提示翻译（**唯一数据源**）
-- `CHANGELOG.md` — 版本变更记录
+Claude Code CLI 中文本地化插件：通过 settings 注入、插件 hooks、CLI 硬编码文字安全 Patch 三层机制，把 Claude Code 界面汉化为简体中文；npm、官方 native binary、Windows bytecode 三种安装形态均支持，Patch 失败自动回滚英文保证 CLI 可用。
 
-## 数据流
+## 如何开始
 
-翻译数据**单一来源**，不允许重复维护：
+- 架构总览：见 `ARCHITECTURE.md`
+- 设计理念与操作原则：见 `docs/design-docs/core-beliefs.md`
+- 当前执行计划：见 `docs/exec-plans/active/`
+- 已知技术债：见 `docs/exec-plans/tech-debt-tracker.md`
+- CI 与发布决策：见 `docs/CI.md`
+- 文档总索引：见 `docs/index.md`
+- 维护细节（数据流、发布步骤、PR 收尾）：见 `CLAUDE.md`
 
-- `verbs/zh-CN.json` 是动词的**唯一数据源**
-- `tips/zh-CN.json` 是提示的**唯一数据源**
-- `settings-overlay.json` **不重复存放** verbs 和 tips 数据
-- `install.sh` 安装时从上述两个 JSON 文件动态读取，现场组装合并到 `~/.claude/settings.json`
+## 硬性约束（不可违反）
 
-**禁止**把 verbs 或 tips 的内容复制到 settings-overlay.json 里。如果要修改翻译，只改 verbs/ 或 tips/ 里的文件。
+1. **翻译数据单一数据源**：`verbs/zh-CN.json`、`tips/zh-CN.json` 是唯一来源；**禁止**把动词/提示复制进 `settings-overlay.json` 或任何第二处。
+2. **负载同步**：根目录 6 个文件（`patch-cli.{sh,js}`、`cli-translations.json`、`bun-binary-io.js`、`compute-patch-revision.sh`、`settings-overlay.json`）是源，`plugin/` 下是副本；改源后必须跑 `bash scripts/sync-payload.sh`，CI 会拦截不一致。
+3. **零 npm 依赖**：不引入 `package.json`；lint/覆盖率/检查工具一律自研脚本放 `scripts/`（2026-10-12 决策 D2）。
+4. **sh/ps1 成对变更**：`install.sh` 与 `install.ps1` 是同一逻辑的双端实现，改动必须成对（决策 D3）；`uninstall.*` 同理。
+5. **Patch 安全红线**：只改显示文本，不动代码逻辑/注释/正则；Patch 结果必须通过 JS 语法校验才落盘，失败回滚英文。
+6. **不直接 push main**：改动走分支 + PR（除非用户明确说直接推 main）；合并后按 `CLAUDE.md` 收尾清理分支与 worktree。
 
-## 技术要点
+## 常用命令
 
-- patch-cli.sh 使用**内容匹配**（匹配英文原文），不依赖变量名，跨版本稳定
-- 从 `cli-translations.json` 批量读取翻译，按字符串长度**降序**替换（长字符串优先，避免子串冲突）
-- cli.js 里的 `…` 是真实 U+2026 字符，不是 `\u2026` 转义序列
-- node -e 在 bash 单引号里，用 Unicode 转义（`\uXXXX`）写中文，避免引号嵌套问题
-- Hook 等技术术语保留英文（Hook 不是"钩子"，同 API、PR）
-- Windows 兼容：NTFS 上 `fs.renameSync` 先 unlink 再 rename
+- 测试（全量）：`node --test tests/`
+- 测试（单文件）：`node --test tests/<name>.test.js`
+- 本地门禁：`bash scripts/preflight.sh`（PR 分支上；加 `--release-state` 做发布收尾校验）
+- 负载同步：`bash scripts/sync-payload.sh`
+- 安装 / 卸载：`./install.sh` / `./uninstall.sh`（Windows 用 `install.ps1`）
+- 诊断本机安装状态：`bash doctor.sh`
 
-## 维护流程规则
+## 规范索引
 
-- 除非用户明确说“直接推 main”或“绕过 PR”，否则所有代码改动默认走新分支、推分支、开 PR，不直接 push `main`。
-- PR 合并或关闭后要做收尾清理：先 `git fetch origin --prune`，再检查 `git worktree list`、`git branch -vv` 和 PR 状态；确认无用且工作区干净的 worktree、本地分支、远端残留分支都要清掉。
-- squash merge 后不能只按 `git branch --merged` 判断是否可删；如果本地分支仍显示有独立提交，要结合 GitHub PR 已合并/已关闭状态和 worktree 干净状态再决定。
+- 设计原则：`docs/design-docs/core-beliefs.md`
+- 支持版本矩阵：`docs/support-matrix.md`
+- 离线安装：`docs/offline-install.md`
+- 本地化审计与修复记录：`docs/localization-audit-2026-10-09.md`、`docs/localization-fix-2026-10-10.md`
+- 经验教训：`docs/lessons.md`
+- 质量评分：`docs/QUALITY_SCORE.md`
 
-## 版本发布流程
+## 工作方式
 
-每完成一批有意义的改动后，按以下步骤发布新版本：
-
-1. **升版本号** — 修改 `plugin/manifest.json` 里的 `version`（语义化版本）
-2. **更新 CHANGELOG** — 在 `CHANGELOG.md` 顶部新增版本段落，分"新增/改进/修复"
-3. **提交** — `git commit`，提交信息带上版本号
-4. **打 tag** — `git tag vX.Y.Z`
-5. **推送** — `git push origin main --tags`
-6. **发 Release** — `gh release create vX.Y.Z --title "vX.Y.Z" --notes "变更摘要"`
-7. **发布状态校验** — `bash scripts/preflight.sh --release-state`，确认 manifest / CHANGELOG / tag / GitHub Release 对齐
+- 变更前先读相关 `docs/`，变更后同步更新文档与 `docs/index.md`
+- 提交粒度单一职责，Conventional Commits；会话最后一次提交须过本地门禁
+- 版本发布按 `CLAUDE.md`「版本发布流程」执行，发布后跑 `bash scripts/preflight.sh --release-state`
+- 计划写在 `docs/exec-plans/active/`，完成后移入 `completed/`
+- 交互式决策确认后必须写入仓库文档（落盘才算数）
