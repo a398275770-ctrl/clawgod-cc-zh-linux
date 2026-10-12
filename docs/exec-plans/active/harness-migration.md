@@ -125,4 +125,5 @@ native 形态：bun-binary-io.js（提取→patch-cli.js→写回）；bytecode 
 | 日期 | 阶段 | 动作 | 关联 commit | 决策与理由 |
 |---|---|---|---|---|
 | 2026-10-12 | 1 | 全量扫描；产出计划/台账/CI.md；建 harnessing 分支 | c9c3b46 | 框架判定=其他；跳过三问；现有 CI 仅审计 |
-| 2026-10-12 | 1 | 用户确认 D2-D5 决策 | （本次提交） | D2=不引入 package.json（零依赖自研脚本）；D3=保持双实现+成对变更检查门禁；D4=node 内置覆盖率；D5=跳过测试先登记不修 |
+| 2026-10-12 | 1 | 用户确认 D2-D5 决策 | c4cb686 | D2=不引入 package.json（零依赖自研脚本）；D3=保持双实现+成对变更检查门禁；D4=node 内置覆盖率；D5=跳过测试先登记不修 |
+| 2026-10-12 | 2 | 批次 1 文档对齐：AGENTS.md 重写、CLAUDE.md 收敛、ARCHITECTURE.md、docs/index.md、core-beliefs.md、QUALITY_SCORE.md、旧计划归档、文档死链校验脚本+测试 | 4117c19 / a1904b3 / 62dc633 / （本次提交） | 文档 lint 用零依赖自研脚本（D2）；负向实测通过（死链/缺节均 exit 1 且报错含修复指引） |

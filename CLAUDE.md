@@ -4,8 +4,9 @@
 
 ## 数据流（翻译数据单一来源）
 
-- `verbs/zh-CN.json` 是 spinner 动词的**唯一数据源**（187 个）
-- `tips/zh-CN.json` 是 spinner 提示的**唯一数据源**（41 条）
+- `verbs/zh-CN.json` — 187 个 spinner 动词翻译（**唯一数据源**）
+- `tips/zh-CN.json` — 41 条 spinner 提示翻译（**唯一数据源**）
+- `cli-translations.json` — 2314 条 UI 翻译对照表（英文→中文），`patch-cli.sh` 从此文件读取
 - `settings-overlay.json` 只含 language、spinnerTipsEnabled 等独有配置，**不含** verbs/tips 数据
 - `install.sh` 安装时从上述两个 JSON 现场组装，合并到 `~/.claude/settings.json`
 - 改翻译只改 `verbs/`、`tips/` 或 `cli-translations.json`，然后跑 `bash scripts/sync-payload.sh` 同步负载
