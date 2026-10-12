@@ -37,6 +37,19 @@ jobs:
         if: github.event_name != 'pull_request'
         run: bash scripts/preflight.sh --skip-payload-source --skip-release-state
 
+      - name: Doc lint (dead links / required sections)
+        run: node scripts/check-doc-links.js
+
+      - name: File size limit
+        run: node scripts/check-file-size.js
+
+      - name: Version alignment
+        run: node scripts/check-version-alignment.js
+
+      - name: sh/ps1 pair-change check
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-sh-ps1-pair.js --base "${{ github.event.pull_request.base.sha }}"
+
   windows-install-smoke:
     name: windows-install-smoke (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
