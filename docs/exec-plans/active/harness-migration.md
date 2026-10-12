@@ -126,5 +126,6 @@ native 形态：bun-binary-io.js（提取→patch-cli.js→写回）；bytecode 
 |---|---|---|---|---|
 | 2026-10-12 | 1 | 全量扫描；产出计划/台账/CI.md；建 harnessing 分支 | c9c3b46 | 框架判定=其他；跳过三问；现有 CI 仅审计 |
 | 2026-10-12 | 1 | 用户确认 D2-D5 决策 | c4cb686 | D2=不引入 package.json（零依赖自研脚本）；D3=保持双实现+成对变更检查门禁；D4=node 内置覆盖率；D5=跳过测试先登记不修 |
+| 2026-10-12 | 4 | 批次 3a 完成（install.sh 1492→1299 行，最大函数 153→61，新增测试 15 例）；3b/3c 经评估后用户决策延期并豁免 | cba40a9 等 7 个提交 | 3b 拆分 patch-cli.js 需协调 payload/发布链路 6+ 处，成本>收益；阶段 2 所定「超1000行文件 ≤2」目标不现实，修正为「最大函数行数 ≤60」（已达 61） |
 | 2026-10-12 | 3 | 批次 2 门禁落地：check-file-size/check-version-alignment/check-sh-ps1-pair/check-doc-links + check-all.sh + pre-push 钩子 + ci.yml 4 步骤 + docs/GATES.md | （本次提交） | D2=自研脚本；D3=成对检查含 pair-exempt 豁免；豁免统一走 gate-exemptions.json（reason+expires） |
 | 2026-10-12 | 2 | 批次 1 文档对齐：AGENTS.md 重写、CLAUDE.md 收敛、ARCHITECTURE.md、docs/index.md、core-beliefs.md、QUALITY_SCORE.md、旧计划归档、文档死链校验脚本+测试 | 4117c19 / a1904b3 / 62dc633 / （本次提交） | 文档 lint 用零依赖自研脚本（D2）；负向实测通过（死链/缺节均 exit 1 且报错含修复指引） |
