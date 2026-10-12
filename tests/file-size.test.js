@@ -18,7 +18,7 @@ function makeRepo(files) {
   fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
   fs.writeFileSync(path.join(dir, "scripts", "gate-exemptions.json"), JSON.stringify({ exemptions: [] }));
   for (const [name, lines] of Object.entries(files)) {
-    fs.writeFileSync(path.join(dir, name), Array(lines).fill("// x").join("\n"));
+    fs.writeFileSync(path.join(dir, name), Array(lines).fill("// x").join("\n") + "\n");
     git(dir, "add", name);
   }
   return dir;
