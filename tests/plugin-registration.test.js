@@ -125,7 +125,7 @@ function createInstallSource(tmp) {
     "settings-overlay.json",
     ".claude-plugin",
     "plugin",
-    "scripts/install-json-helper.js",
+    "scripts",
     "tips",
     "verbs",
   ]) {

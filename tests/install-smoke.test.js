@@ -128,7 +128,7 @@ function createInstallSource(tmpRoot, invokedFile, nativeVersion = "2.1.116", op
   const sourceRepo = path.join(tmpRoot, "source");
   fs.mkdirSync(sourceRepo, { recursive: true });
 
-  for (const relative of ["install.sh", "compute-patch-revision.sh", "settings-overlay.json"]) {
+  for (const relative of ["install.sh", "compute-patch-revision.sh", "settings-overlay.json", "scripts"]) {
     copyTree(path.join(repoRoot, relative), path.join(sourceRepo, relative));
   }
   for (const relative of ["plugin", "tips", "verbs"]) {
