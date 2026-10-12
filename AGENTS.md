@@ -32,7 +32,9 @@ Claude Code CLI 中文本地化插件：通过 settings 注入、插件 hooks、
 
 - 测试（全量）：`node --test tests/`
 - 测试（单文件）：`node --test tests/<name>.test.js`
-- 本地门禁：`bash scripts/preflight.sh`（PR 分支上；加 `--release-state` 做发布收尾校验）
+- 本地门禁（一条命令）：`bash scripts/check-all.sh`（`--fast` 跳过测试；清单见 `docs/GATES.md`）
+- 安装 pre-push 钩子：`bash scripts/install-git-hooks.sh`
+- 既有 PR 门禁：`bash scripts/preflight.sh`（PR 分支上；加 `--release-state` 做发布收尾校验）
 - 负载同步：`bash scripts/sync-payload.sh`
 - 安装 / 卸载：`./install.sh` / `./uninstall.sh`（Windows 用 `install.ps1`）
 - 诊断本机安装状态：`bash doctor.sh`

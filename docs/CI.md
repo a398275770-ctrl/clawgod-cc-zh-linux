@@ -28,12 +28,18 @@
 
 ## 4. 落地说明
 
-- 框架判定 = 其他类型，多平台打包与 Release 流水线**不适用**（§3.4）。
-- 基础门禁（lint / test / build 三件套 + 覆盖率 + 文档门禁）按 §5 阶段 3 落地，届时更新本节。
-- 现有 4 个 workflow 保留不动；如需清理须单独征求同意。
+- 框架判定 = 其他类型，多平台打包与 Release 流水线**不适用**（§3.4），未生成任何打包 workflow。
+- 现有 4 个 workflow 保留不动；仅在 `ci.yml` 的 test job **追加步骤**（2026-10-12，阶段 3）：
+  - `node scripts/check-doc-links.js`（文档死链/必填节）
+  - `node scripts/check-file-size.js`（文件大小上限 T1）
+  - `node scripts/check-version-alignment.js`（版本声明点对齐）
+  - `node scripts/check-sh-ps1-pair.js --base <pr-base>`（双端成对变更，仅 PR 触发）
+- 本地门禁总入口：`bash scripts/check-all.sh`（清单详见 `docs/GATES.md`）。
+- 覆盖率门禁：待阶段 5 接入（决策 D4 = node 内置覆盖率，零依赖）。
 
 ## 5. 变更历史
 
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-10-12 | 建立本文档；框架判定为其他类型；审计现有 4 个 workflow | 阶段 1 全量扫描产出（§3.2 / §3.4） |
+| 2026-10-12 | ci.yml test job 追加 4 个门禁步骤（不新增 workflow） | 阶段 3 批次 2 落地；门禁清单见 docs/GATES.md |
