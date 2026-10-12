@@ -523,6 +523,11 @@ register_official_plugin() {
 reconcile_standalone_hooks() {
     local fallback_marker_created=false
 
+    if [ ! -f "$SCRIPT_DIR/scripts/reconcile-standalone-hooks.js" ]; then
+        echo -e "${YELLOW}缺少 scripts/reconcile-standalone-hooks.js；跳过 Hook 协调（旧归档环境）。${NC}"
+        return 0
+    fi
+
     if [ "$PLUGIN_RUNTIME_MODE" = "standalone" ] && [ ! -f "$OFFICIAL_FALLBACK_MARKER" ]; then
         mkdir -p "$PLUGIN_DST" 2>/dev/null || true
         if printf '%s\n' "standalone" > "$OFFICIAL_FALLBACK_MARKER" 2>/dev/null; then
@@ -953,6 +958,10 @@ list_profile_targets() {
 update_profile_injection() {
     local target="$1"
     local mode="$2"
+
+    if [ ! -f "$SCRIPT_DIR/scripts/update-profile-injection.js" ]; then
+        return 0
+    fi
     local source_line
     source_line="$(profile_source_line)"
 
@@ -961,39 +970,7 @@ update_profile_injection() {
     PROFILE_MARKER_START="$PROFILE_MARKER_START" \
     PROFILE_MARKER_END="$PROFILE_MARKER_END" \
     PROFILE_SOURCE_LINE="$source_line" \
-    node - <<'NODE'
-const fs = require("fs");
-const path = process.env.PROFILE_TARGET;
-const mode = process.env.PROFILE_MODE;
-const start = process.env.PROFILE_MARKER_START;
-const end = process.env.PROFILE_MARKER_END;
-const sourceLine = process.env.PROFILE_SOURCE_LINE;
-const block = `${start}\n${sourceLine}\n${end}`;
-
-let content = "";
-if (fs.existsSync(path)) {
-  content = fs.readFileSync(path, "utf8");
-}
-
-const escapedStart = start.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const escapedEnd = end.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const blockPattern = new RegExp(`\\n?${escapedStart}[\\s\\S]*?${escapedEnd}\\n?`, "g");
-content = content.replace(blockPattern, "");
-
-if (mode === "install") {
-  const trimmed = content.replace(/\s+$/, "");
-  const prefix = trimmed.length > 0 ? `${trimmed}\n\n` : "";
-  content = `${prefix}${block}\n`;
-} else {
-  content = content.replace(/\s+$/, "");
-  if (content.length > 0) {
-    content += "\n";
-  }
-}
-
-fs.mkdirSync(require("path").dirname(path), { recursive: true });
-fs.writeFileSync(path, content);
-NODE
+    node "$SCRIPT_DIR/scripts/update-profile-injection.js"
 }
 
 remove_launcher_artifacts() {
