@@ -3,7 +3,7 @@
 ## 0. 元信息
 - 项目 / 仓库：claude-code-zh-cn（本地 harnessing 分支）
 - 计划版本 / 日期：v1 / 2026-10-12
-- 状态：执行中（A/B 完成，C 待做）
+- 状态：已完成（A/B/C 完成；真实环境安装待用户触发）
 - 类型：**新增功能（行为变更）**——与 harness 改造（行为守恒）无关，独立提交、独立验收
 
 ## 1. 背景与目标
@@ -84,6 +84,7 @@
 | D7 | clawgod 形态的 patch 默认开启还是 `ZH_CN_CLAWGOD_PATCH=1` opt-in？clawgod 是非官方封装，默认开启等于对未经上游验证的环境做写入；opt-in 更保守但多一步 | install.sh 默认行为 |
 
 ## 6. 进度与决策日志
+| 2026-10-12 | C | hook 自动重 patch + payload 副本/守护对 + doctor 检查项 + 矩阵生成器段落 + noop 备份清理 | （见提交） | support-matrix.md 生成物刷新延期（本机磁盘配额满，CI 可生成）；noop 清理来自真实 dry-run 发现（2341 chunk 全命中） |
 
 | 日期 | 批次 | 动作 | 关联 commit | 决策与理由 |
 |---|---|---|---|---|
