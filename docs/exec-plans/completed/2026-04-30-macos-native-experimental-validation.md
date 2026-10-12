@@ -1,3 +1,5 @@
+> 归档自 docs/plans/（2026-10-12，harness 改造批次 1）。内容为历史计划，反映当时状态。
+
 # Native Binary Support Pivot Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

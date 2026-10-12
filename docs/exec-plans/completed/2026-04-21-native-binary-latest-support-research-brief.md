@@ -1,3 +1,5 @@
+> 归档自 docs/plans/（2026-10-12，harness 改造批次 1）。内容为历史计划，反映当时状态。
+
 # Claude Code 最新版 native binary 支持研究 brief
 
 ## 给研究模型的任务
