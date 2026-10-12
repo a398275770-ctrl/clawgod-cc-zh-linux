@@ -38,7 +38,8 @@ const LINK_SOURCES = [
   "docs/CI.md",
   "docs/QUALITY_SCORE.md",
   "docs/design-docs/core-beliefs.md",
-  "docs/exec-plans/active/harness-migration.md",
+  "docs/exec-plans/active/clawgod-bunfs-adaptation.md",
+  "docs/exec-plans/completed/harness-2026-10-12.md",
   "docs/exec-plans/tech-debt-tracker.md",
 ];
 
