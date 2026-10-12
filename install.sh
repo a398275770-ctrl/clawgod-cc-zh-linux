@@ -701,49 +701,7 @@ ccswitch_config_status() {
 
     ZH_CN_CCSWITCH_CURRENT_FILE="$current_file" \
     ZH_CN_CCSWITCH_OVERLAY_FILE="$overlay_file" \
-    node <<'NODE' 2>/dev/null || printf "invalid"
-const fs = require("fs");
-
-function readJson(file, fallback) {
-  const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
-  if (!raw.trim()) return fallback;
-  return JSON.parse(raw);
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function spinnerVerbCount(value) {
-  if (Array.isArray(value)) return value.length;
-  if (!isPlainObject(value)) return 0;
-  if (Array.isArray(value.verbs)) return value.verbs.length;
-  return Object.keys(value).length;
-}
-
-function spinnerTipCount(value) {
-  if (Array.isArray(value)) return value.length;
-  if (!isPlainObject(value)) return 0;
-  if (Array.isArray(value.tips)) return value.tips.length;
-  return 0;
-}
-
-const current = readJson(process.env.ZH_CN_CCSWITCH_CURRENT_FILE, {});
-readJson(process.env.ZH_CN_CCSWITCH_OVERLAY_FILE, {});
-
-if (!isPlainObject(current)) {
-  process.stdout.write("invalid");
-  process.exit(0);
-}
-
-const complete =
-  current.language === "Chinese" &&
-  current.spinnerTipsEnabled === true &&
-  spinnerVerbCount(current.spinnerVerbs) >= 100 &&
-  spinnerTipCount(current.spinnerTipsOverride) >= 40;
-
-process.stdout.write(complete ? "ok" : "needs-sync");
-NODE
+    node "$SCRIPT_DIR/scripts/ccswitch-config-status.js" 2>/dev/null || printf "invalid"
 }
 
 ccswitch_build_merged_config() {
@@ -754,43 +712,7 @@ ccswitch_build_merged_config() {
     ZH_CN_CCSWITCH_CURRENT_FILE="$current_file" \
     ZH_CN_CCSWITCH_OVERLAY_FILE="$overlay_file" \
     ZH_CN_CCSWITCH_OUTPUT_FILE="$output_file" \
-    node <<'NODE'
-const fs = require("fs");
-
-function readJson(file, fallback) {
-  const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
-  if (!raw.trim()) return fallback;
-  return JSON.parse(raw);
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function deepMerge(base, override) {
-  const result = { ...base };
-  for (const [key, value] of Object.entries(override)) {
-    if (isPlainObject(result[key]) && isPlainObject(value)) {
-      result[key] = deepMerge(result[key], value);
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-const current = readJson(process.env.ZH_CN_CCSWITCH_CURRENT_FILE, {});
-const overlay = readJson(process.env.ZH_CN_CCSWITCH_OVERLAY_FILE, {});
-
-if (!isPlainObject(current) || !isPlainObject(overlay)) {
-  process.exit(2);
-}
-
-fs.writeFileSync(
-  process.env.ZH_CN_CCSWITCH_OUTPUT_FILE,
-  `${JSON.stringify(deepMerge(current, overlay), null, 2)}\n`
-);
-NODE
+    node "$SCRIPT_DIR/scripts/ccswitch-build-merged-config.js"
 }
 
 ccswitch_build_provider_meta_updates() {
@@ -799,59 +721,7 @@ ccswitch_build_provider_meta_updates() {
 
     ZH_CN_CCSWITCH_PROVIDERS_FILE="$providers_file" \
     ZH_CN_CCSWITCH_PROVIDER_SQL_FILE="$output_file" \
-    node <<'NODE'
-const fs = require("fs");
-
-function fromHex(hex) {
-  return Buffer.from(hex || "", "hex").toString("utf8");
-}
-
-function sqlString(value) {
-  return `'${String(value).replace(/'/g, "''")}'`;
-}
-
-const raw = fs.readFileSync(process.env.ZH_CN_CCSWITCH_PROVIDERS_FILE, "utf8").replace(/\r/g, "");
-const lines = raw.split("\n").filter(Boolean);
-const updates = [];
-let changed = 0;
-let skipped = 0;
-
-for (const line of lines) {
-  const tab = line.indexOf("\t");
-  if (tab < 0) {
-    skipped += 1;
-    continue;
-  }
-
-  const id = fromHex(line.slice(0, tab));
-  const metaText = fromHex(line.slice(tab + 1).trim());
-  let meta;
-
-  try {
-    meta = metaText.trim() ? JSON.parse(metaText) : {};
-  } catch (_) {
-    skipped += 1;
-    continue;
-  }
-
-  if (!meta || typeof meta !== "object" || Array.isArray(meta)) {
-    skipped += 1;
-    continue;
-  }
-
-  if (meta.commonConfigEnabled !== true) {
-    changed += 1;
-  }
-  meta.commonConfigEnabled = true;
-
-  updates.push(
-    `update providers set meta=${sqlString(JSON.stringify(meta))} where id=${sqlString(id)} and app_type='claude';`
-  );
-}
-
-fs.writeFileSync(process.env.ZH_CN_CCSWITCH_PROVIDER_SQL_FILE, updates.join("\n") + (updates.length ? "\n" : ""));
-process.stdout.write(`${changed} ${lines.length} ${skipped}`);
-NODE
+    node "$SCRIPT_DIR/scripts/ccswitch-build-provider-meta-updates.js"
 }
 
 sync_ccswitch_common_config() {
