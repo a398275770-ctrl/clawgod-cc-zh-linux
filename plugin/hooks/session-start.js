@@ -35,6 +35,11 @@ function runCandidate(command, args, input, env) {
     encoding: "utf8",
     env,
     windowsHide: true,
+    // 兜底防线（TD-HOOK-002）：即使 bash/ps1 内部的单个网络调用有超时，
+    // 也不能允许任何意外挂起（DNS 行为异常、子进程卡死等）无限阻塞 CLI。
+    // 25s = bash 内部 20s 网络上限 + 余量；超时后走 fallbackOutput()，CLI 原样可用。
+    timeout: 25000,
+    killSignal: "SIGKILL",
   });
 }
 

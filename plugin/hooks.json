@@ -8,7 +8,8 @@
             "type": "command",
             "command": "node",
             "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js"],
-            "async": false
+            "async": false,
+            "timeout": 30
           }
         ]
       }
