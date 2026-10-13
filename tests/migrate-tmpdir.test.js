@@ -6,13 +6,16 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
+// 样本构件：拆开写，真实测试文件里不出现可被静态守卫匹配的完整形态
+const MK = "fs.mkdtempSync";
+const TMP = "os.tmpdir";
 const SCRIPT = path.join(REPO_ROOT, "scripts", "migrate-tmpdir.js");
 
 /**
  * migrate-tmpdir.js 的门禁守护。
  *
  * 防的是「守卫自己被改窄」：2026-10-13 首版正则只匹配字符串/模板字面量，
- * 漏掉标识符形态（mkdtempSync(path.join(os.tmpdir(), name))），
+ * 漏掉标识符形态（前缀为变量而非字面量的那一类），
  * 导致 tests/install-json-helper.test.js 的 3 个泄漏目录长期无人发现。
  * 这些用例锁定「两种前缀形态都必须被抓住且可自动迁移」。
  */
@@ -65,7 +68,7 @@ function runCapture(dir, args = []) {
 test("migrate-tmpdir: 字符串字面量形态被抓住且可自动迁移", (t) => {
   const dir = makeRepo();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  writeTest(dir, 'const d = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-x-"));');
+  writeTest(dir, 'const d = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-x-"));'); // tmpdir-sample: 守卫自测样本，非真实泄漏
   git(dir, "add", "-A");
   git(dir, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init");
 
@@ -84,7 +87,7 @@ test("migrate-tmpdir: 标识符形态（变量前缀）也必须被抓住——2
   const dir = makeRepo();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   // 这正是 tests/install-json-helper.test.js 的包装函数形态，首版正则匹配不到
-  writeTest(dir, "function tmpDir(name) {\n  return fs.mkdtempSync(path.join(os.tmpdir(), name));\n}");
+  writeTest(dir, "function tmpDir(name) {\n  return fs.mkdtempSync(path.join(os.tmpdir(), name));\n}"); // tmpdir-sample: 守卫自测样本，非真实泄漏
   git(dir, "add", "-A");
   git(dir, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init");
 
@@ -101,7 +104,7 @@ test("migrate-tmpdir: 标识符形态（变量前缀）也必须被抓住——2
 test("migrate-tmpdir: 模板字面量形态（含 ${...}）被抓住且保留表达式", (t) => {
   const dir = makeRepo();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  writeTest(dir, "const d = fs.mkdtempSync(path.join(os.tmpdir(), `cczh-${name}-`));");
+  writeTest(dir, "const d = fs.mkdtempSync(path.join(os.tmpdir(), `cczh-${name}-`));"); // tmpdir-sample: 守卫自测样本，非真实泄漏
   git(dir, "add", "-A");
   git(dir, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init");
 
@@ -122,4 +125,31 @@ test("migrate-tmpdir: 已全部迁移的仓库 --check 通过", (t) => {
   const r = runCapture(dir, ["--check"]);
   assert.strictEqual(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /替换 0 处/);
+});
+
+test("migrate-tmpdir: tmpdir-sample 豁免只对标记行生效，拼错标记立即失效", (t) => {
+  const dir = makeRepo();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const f = writeTest(
+    dir,
+    [
+      // 样本在临时仓库里构造；真实测试文件不含可被守卫匹配的静态形态，
+      // 否则「验证拼错标记会失效」这个用例本身就会触发守卫。
+      // 标记必须拼进写入文件的字符串里——放在测试源码注释中不生效
+      'const ok = ' + MK + '(path.join(' + TMP + '(), "cczh-exempt-")); // tmpdir-sample: 豁免行样本',
+      'const bad = ' + MK + '(path.join(' + TMP + '(), "cczh-real-")); // tmpdir-sample 拼错的标记',
+    ].join("\n")
+  );
+  git(dir, "add", "-A");
+  git(dir, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init");
+
+  // 标记行被豁免，拼错的那行仍必须被抓住
+  const r = runCapture(dir, ["--check"]);
+  assert.notStrictEqual(r.status, 0, "拼错豁免标记的行必须被抓住");
+  assert.match(r.stdout, /替换 1 处/);
+
+  run(dir);
+  const after = fs.readFileSync(f, "utf8");
+  assert.match(after, /fs\.mkdtempSync\(path\.join\(os\.tmpdir\(\), "cczh-exempt-"\)\); \/\/ tmpdir-sample/, "豁免行必须原样保留（仍是 mkdtempSync，未被迁移）");
+  assert.match(after, /mkTmpDir\("cczh-real-"\)/, "未豁免行必须被迁移");
 });

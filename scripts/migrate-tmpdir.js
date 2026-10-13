@@ -31,6 +31,9 @@ const CHECK_ONLY = process.argv.includes("--check");
 // 导致 tests/install-json-helper.test.js 这类包装函数漏检——实测泄漏 3 个目录/轮。
 // mkTmpDir 接受任意字符串，故标识符形态同样可自动迁移。
 const CALL_RE = /fs\.mkdtempSync\(\s*path\.join\(\s*os\.tmpdir\(\)\s*,\s*((?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|[A-Za-z_$][\w$]*))\s*\)\s*\)/g;
+// 同一模式的无状态副本，用于迁移后统计「还有多少处统一调用形态没被替换」。
+// （不能复用 CALL_RE：全局正则有 lastIndex 状态，重复 exec 会漏。）
+const CALL_RE_G = new RegExp(CALL_RE.source, "g");
 
 function listTestFiles() {
   return execSync("git ls-files 'tests/*.test.js'", { cwd: REPO_ROOT, encoding: "utf8" })
@@ -38,16 +41,29 @@ function listTestFiles() {
     .filter(Boolean);
 }
 
+// 显式豁免标记：行内含此标记的不参与匹配与计数。
+// 用途：tests/migrate-tmpdir.test.js 需要**静态可见**的 mkdtempSync 样本来验证
+// 守卫本身（动态拼接就测不到真东西），这些样本不是真实泄漏。豁免必须显式
+// （core-beliefs #20），与 scripts/gate-exemptions.json 同一原则。
+const SAMPLE_MARK = "tmpdir-sample:";
+
 function migrateFile(relPath) {
   const abs = path.join(REPO_ROOT, relPath);
   const original = fs.readFileSync(abs, "utf8");
   let text = original;
   let count = 0;
 
-  text = text.replace(CALL_RE, (_m, prefixExpr) => {
-    count += 1;
-    return `mkTmpDir(${prefixExpr})`;
-  });
+  // 逐行处理：豁免行原样保留（否则守卫会拦住自己测试里的静态样本）
+  text = text
+    .split("\n")
+    .map((line) => {
+      if (line.includes(SAMPLE_MARK)) return line;
+      return line.replace(CALL_RE, (_m, prefixExpr) => {
+        count += 1;
+        return `mkTmpDir(${prefixExpr})`;
+      });
+    })
+    .join("\n");
 
   if (count === 0) return { relPath, count: 0, changed: false, skipped: 0 };
 
@@ -67,8 +83,14 @@ function migrateFile(relPath) {
     text = text.slice(0, firstEnd) + inject + text.slice(firstEnd);
   }
 
-  // 统计文件中残留的裸 mkdtempSync（说明有非统一形态，需人工处理）
-  const remaining = (text.match(/fs\.mkdtempSync\(/g) || []).length;
+  // 统计文件中残留的裸 mkdtempSync **调用**（说明有非统一形态，需人工处理）。
+  // 只数统一调用形态，且排除显式豁免行——注释、正则、字符串里的合法提及，
+  // 以及 `tmpdir-sample:` 标记的测试样本，都不是需要人工处理的残留。
+  const remaining = text
+    .split("\n")
+    .filter((line) => !line.includes(SAMPLE_MARK))
+    .join("\n")
+    .match(CALL_RE_G)?.length ?? 0;
 
   if (!CHECK_ONLY) fs.writeFileSync(abs, text);
   return { relPath, count, changed: true, skipped: remaining };
