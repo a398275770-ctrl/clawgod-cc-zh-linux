@@ -556,6 +556,43 @@ reconcile_standalone_hooks() {
     fi
 }
 
+# 与 install.ps1 sync-standalone-commands 对齐：
+# standalone 模式把 slash 命令桩复制到 ~/.claude/commands（供 /chinese /english 等命令生效）；
+# 非 standalone 模式若发现本插件安装的命令桩则移除（由官方插件机制提供命令）。
+sync_standalone_commands() {
+    local owned_text="This command is handled by the claude-code-zh-cn UserPromptSubmit hook"
+    local command_root="$HOME/.claude/commands"
+    local name source destination
+
+    if [ "$PLUGIN_RUNTIME_MODE" = "standalone" ]; then
+        mkdir -p "$command_root"
+    fi
+
+    for name in chinese english zh en; do
+        source="$PLUGIN_SRC/commands/$name.md"
+        destination="$command_root/$name.md"
+        # 目标是否为本插件安装（含 owned 标注）
+        local owned=false
+        if [ -f "$destination" ] && grep -q "$owned_text" "$destination" 2>/dev/null; then
+            owned=true
+        fi
+
+        if [ "$PLUGIN_RUNTIME_MODE" = "standalone" ]; then
+            if [ "$owned" = true ] || [ ! -f "$destination" ]; then
+                if [ -f "$source" ]; then
+                    cp "$source" "$destination"
+                fi
+            else
+                if [ "$SKIP_BANNER" != "1" ]; then
+                    echo -e "${YELLOW}保留已有用户命令：$destination（该快捷命令本次未接管）${NC}"
+                fi
+            fi
+        elif [ "$owned" = true ]; then
+            rm -f "$destination"
+        fi
+    done
+}
+
 ccswitch_manual_steps() {
     if [ "$SKIP_BANNER" = "1" ]; then
         return
@@ -1309,6 +1346,7 @@ main() {
         merge_settings
     fi
     reconcile_standalone_hooks
+    sync_standalone_commands
     write_install_metadata
 
     if [ "$UPDATE_ONLY" != true ]; then

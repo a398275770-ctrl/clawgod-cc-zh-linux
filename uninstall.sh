@@ -427,6 +427,16 @@ if [ -f "$PLUGIN_DST/skill-i18n/restore.js" ] && command -v node >/dev/null 2>&1
     node "$PLUGIN_DST/skill-i18n/restore.js" --all >/dev/null 2>&1 || true
 fi
 
+# 仅移除本插件安装的用户 slash 命令，不碰同名的用户自定义命令（与 uninstall.ps1 对齐）
+command_root="$HOME/.claude/commands"
+owned_text="This command is handled by the claude-code-zh-cn UserPromptSubmit hook"
+for name in chinese english zh en; do
+    command_file="$command_root/$name.md"
+    if [ -f "$command_file" ] && grep -q "$owned_text" "$command_file" 2>/dev/null; then
+        rm -f "$command_file"
+    fi
+done
+
 # 移除插件
 if [ -d "$PLUGIN_DST" ]; then
     rm -rf "$PLUGIN_DST"
