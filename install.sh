@@ -1298,7 +1298,16 @@ main() {
     sync_plugin_payload
     register_official_plugin
     install_launcher
-    merge_settings
+    # 与 install.ps1 对齐：用户已通过语言切换选择英文时，重装保留该选择，不重新写入中文设置
+    local language_mode_file="$PLUGIN_DST/.language-mode"
+    if [ -f "$language_mode_file" ] && [ "$(tr -d '[:space:]' < "$language_mode_file")" = "en" ]; then
+        ensure_settings_file
+        if [ "$SKIP_BANNER" != "1" ]; then
+            echo -e "${YELLOW}已选择英文；重装保留该语言选择，不重新写入中文设置${NC}"
+        fi
+    else
+        merge_settings
+    fi
     reconcile_standalone_hooks
     write_install_metadata
 

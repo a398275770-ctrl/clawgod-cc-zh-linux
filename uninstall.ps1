@@ -397,6 +397,27 @@ if (-not $RESTORED) {
     }
 }
 
+# 还原 clawgod bunfs（独立于 npm/native 路径，可共存；与 uninstall.sh 对齐）
+$clawgodBunfs = ""
+$detectClawgodScript = Join-Path $PSScriptRoot "scripts\detect-clawgod.js"
+$patchBunfsScript = Join-Path $PSScriptRoot "scripts\patch-bunfs.js"
+if ((Test-Path $detectClawgodScript) -and (Get-Command node -ErrorAction SilentlyContinue)) {
+    $clawgodBunfs = (& node $detectClawgodScript 2>$null | Out-String).Trim()
+}
+$clawgodDir = if ($env:CLAWGOD_DIR) { $env:CLAWGOD_DIR } else { "$env:USERPROFILE\.clawgod" }
+if ((-not $clawgodBunfs) -and (Test-Path (Join-Path $clawgodDir "bunfs.zh-cn-backup"))) {
+    $clawgodBunfs = "clawgod-bunfs:" + (Join-Path $clawgodDir "bunfs")
+}
+if ($clawgodBunfs -and (Test-Path $patchBunfsScript)) {
+    $bunfsPath = $clawgodBunfs -replace "^clawgod-bunfs:", ""
+    & node $patchBunfsScript --restore $bunfsPath
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "已还原 clawgod bunfs" -ForegroundColor Green
+    } else {
+        Write-Host "clawgod bunfs 还原未完成，备份目录保留在 bunfs.zh-cn-backup" -ForegroundColor Yellow
+    }
+}
+
 # 还原 skill/插件命令说明为英文（必须在移除插件目录前，否则 restore.js 已不存在）
 if ((Test-Path "$PluginDst/skill-i18n/restore.js") -and (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Host "还原 skill/插件命令说明为英文..." -ForegroundColor Blue
