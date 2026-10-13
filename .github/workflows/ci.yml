@@ -52,6 +52,9 @@ jobs:
       - name: No bare mkdtempSync in tests (TD-QA-008)
         run: node scripts/migrate-tmpdir.js --check
 
+      - name: Doc freshness (gardener)
+        run: node scripts/check-doc-freshness.js
+
       - name: Structure checks (S1/S2)
         run: node scripts/check-structure.js
 

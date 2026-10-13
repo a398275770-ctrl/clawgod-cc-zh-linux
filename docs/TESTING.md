@@ -47,3 +47,28 @@
 
 - `node scripts/check-structure.js`：安装脚本不得再出现长大 heredoc（批次 3a 成果防回退）；仓库源码不得 `require` 仓库外路径（payload 自包含）。
 - 详见 docs/GATES.md。
+
+## 门禁实测记录（负向注入证据，防「假门禁」）
+
+> 每个新门禁必须证明「注入缺陷时真的会失败」，只看配置不算验收（§5 阶段 3 硬要求）。
+> 本节登记实测结果；复现方式见各测试文件的负向用例。
+
+| 门禁 | 注入的缺陷 | 实测结果 | 复现位置 |
+|---|---|---|---|
+| 覆盖率 floor（TD-QA-007） | lcov 里放一个 10% 覆盖的文件 | exit 1，点名文件 | `tests/coverage-gate.test.js` |
+| 覆盖率 floor 豁免过期 | `floor.exempt` 的 expires 改成 2020-01-01 | exit 1，报「豁免已过期」 | 同上 |
+| sh/ps1 成对（含 hook） | 只改 `session-start.ps1` 一端 | exit 1，报错含修复指引 | 2026-10-13 手工实测（临时提交后回滚） |
+| plugin 负载副本一致性 | 给 `plugin/patch-cli-localizations.js` 追加一行 | exit 1 | `tests/plugin-payload.test.js` |
+| 临时目录守卫（TD-QA-008） | 在 `tests/doctor.test.js` 重新引入裸 `mkdtempSync` | exit 1，报告 1 处待迁移 | `node scripts/migrate-tmpdir.js --check` |
+| 翻译数据源守护 | （由 `tests/settings-sources.test.js` 守护） | 负向用例存在 | `tests/settings-sources.test.js` |
+| **文档园丁（2026-10-13）** | `QUALITY_SCORE.md` 用例数改 545→999 | exit 1，报「声称 999 用例，实际 553」 | `tests/doc-freshness.test.js` |
+| **文档园丁** | 真实口径覆盖率改 85.54→11.11 | exit 1，且 `--write` 只改目标行（对照口径 79.92% 未被误改） | 同上 |
+| **文档园丁** | `GATES.md` 某门禁「触发」列去掉 check-all | exit 1，报「未登记」 | 同上 |
+| **文档园丁** | 删掉 `QUALITY_SCORE.md` / `GATES.md` | exit 1，报带「修复：」的指引而非 ENOENT 堆栈 | 同上 |
+
+## 文档园丁（2026-10-13 新增，§8.2 doc-gardening）
+
+- `node scripts/check-doc-freshness.js`：校验 `QUALITY_SCORE.md` 的可复算数字与 `GATES.md` 的本地门禁清单是否仍与代码一致；数字类漂移 `--write` 自动修复。
+- **能力边界**：只校有唯一真相来源的数字。主观评分、结论性描述、测试耗时、分支/函数覆盖率逐项值**不校**——理由见 `docs/GATES.md`「文档园丁的能力边界」。
+- 上线即抓到 3 处真实漂移（用例数 545→553、patch-cli.js 1938→1135 行、覆盖率停在 TD-QA-006 修正前），已全部修复。
+- 跑一轮约 40s（内部要跑全量测试取真相），由 `check-all.sh` 带上，不必单独运行。

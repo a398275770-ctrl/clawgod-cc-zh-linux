@@ -36,6 +36,7 @@ run "版本声明点对齐"         node scripts/check-version-alignment.js
 run "翻译数据源守护"         node scripts/verify-settings-sources.js
 run "临时目录无裸创建（TD-QA-008）" node scripts/migrate-tmpdir.js --check
 run "文档派生计数同步"       node scripts/sync-doc-derived-counts.js --check
+run "文档新鲜度（园丁）"     node scripts/check-doc-freshness.js
 run "结构约束（S1/S2）"      node scripts/check-structure.js
 
 # sh/ps1 成对变更：仅在能解析 base 时检查（本地无 origin/main 时跳过并提示）

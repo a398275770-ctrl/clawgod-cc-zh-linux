@@ -22,12 +22,12 @@
 
 ## 评分依据（可复算，2026-10-13 实测）
 
-- **测试基线**：`node --test tests/` → 553 用例 / 546 通过 / 7 跳过 / 0 失败 / 34.4s。
+- **测试基线**：`node --test tests/` → 553 用例 / 546 通过 / 7 跳过 / 0 失败 / 34.4s（园丁只机械校验「用例总数」；通过/跳过数随平台变化，随时可复算）。
 - **复杂度**：`wc -l` 与 awk 函数度量——`install.sh` 1360 行（最大函数 61 行，`ccswitch_sync_apply`）、`install.ps1` 1382 行、`patch-cli.js` 1135 行 + `patch-cli-localizations.js` 873 行（2026-10-13 D3 拆分）。
 - **覆盖率**（**双口径并列，见 TD-QA-006**）：
   - 门禁当前口径（含 `plugin/` 副本双计，51 文件）：整体行 79.92%（13167/16476）。该口径把同一份代码算两次，仅用于对照。
   - **真实口径**（剔除与根字节一致的 `plugin/` 副本，48 文件）：行 **85.54%**（12276/14351）。副本本就是同一份代码测一次即够，真实口径才是项目实际健康度。
-  - 分支/函数覆盖与关键模块逐项达标情况见 `node scripts/check-coverage.js --report` 输出。
+  - 分支/函数覆盖与关键模块逐项达标情况见 `node scripts/check-coverage.js --report` 输出（园丁只机械校验行覆盖率，其余项随时可复算）。
   - 低覆盖盲区（TD-QA-007，门禁不点名）：`scripts/native-repair.js` 13.5%（24/178）、`plugin/skill-i18n/translate.js` 57.7%、`scripts/generate-upstream-text-diff.js` 69.7%。
 - **门禁**：CI 含 preflight + node --test + 覆盖率 + 结构测试 + 文档 lint + 版本对齐 + 双端成对；本地 `check-all.sh` 一条命令复现全部；pre-push 钩子可安装（`scripts/install-git-hooks.sh`）。
 - **双端对齐**：5 处存量不对称已修复（TD-PAIR-001~004 + clawgod bunfs 还原）；`check-sh-ps1-pair.js` 拦截 install/uninstall/hook 双端增量漂移；存量对称性基线检查为已知盲区（TD-COMPLEX-002）。

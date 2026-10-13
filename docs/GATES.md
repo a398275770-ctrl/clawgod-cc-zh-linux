@@ -34,7 +34,24 @@ bash scripts/install-git-hooks.sh   # 安装 pre-push 钩子（推送前自动�
 | sh/ps1 成对变更（D3） | `node scripts/check-sh-ps1-pair.js --base <ref>` | CI：PR + check-all | 双端实现只改了一端 | 把同一逻辑同步到另一端 | commit message 含 `pair-exempt: <原因>` |
 | plugin 负载一致性 | `bash scripts/check-all.sh`（内嵌） | check-all（pre-push） | 根 6 文件与 plugin/ 副本不一致 | `bash scripts/sync-payload.sh` | 无 |
 | 结构约束（S1 安装脚本禁长 heredoc / S2 禁仓库外引用） | `node scripts/check-structure.js` | CI + check-all | 架构约束被违反（批次 3a 成果回退或 payload 不自包含） | 报错含逐条修复指引 | 无 |
+| 文档新鲜度（园丁，2026-10-13） | `node scripts/check-doc-freshness.js` | CI + check-all | ①`QUALITY_SCORE.md` 的测试用例数/文件行数/真实口径覆盖率与现算不符；②`GATES.md` 登记的本地门禁与 `check-all.sh` 实际步骤不符 | 数字类：`node scripts/check-doc-freshness.js --write` 自动修；清单类：按提示补登记或把「触发」列改回实际范围 | 无 |
 | 覆盖率门禁（D4 + TD-QA-006/007） | `node scripts/check-coverage.js` | CI + check-all 全量模式 | ①整体/关键模块低于阈值；②任一源文件行覆盖低于 `floor.minLineRate`；③`floor.exempt` 豁免已过期 | 补测试；阈值不合理时改 `scripts/coverage-thresholds.json` 并在 PR 说明；确属无法单测的在 `floor.exempt` 登记 `{reason, expires}` | `floor.exempt`（reason + expires 必填，到期自动恢复拦截） |
+
+### 文档园丁的能力边界（2026-10-13）
+
+`check-doc-freshness.js` 是 §8.2 的 doc-gardening 机械化落地，但**只校验有唯一真相来源的数字**：
+
+| 校验 | 真相来源 |
+|---|---|
+| 测试用例数 | `node --test tests/` 输出 |
+| install.sh / install.ps1 / patch-cli.js 行数 | `wc -l` |
+| install.sh 最大函数行数 | awk 函数度量 |
+| 真实口径行覆盖率 | `check-coverage.js --report` |
+| 本地门禁清单 | 解析 `check-all.sh` 的 run 步骤 |
+
+**不校验**：主观评分、结论性描述、测试耗时、以及「为什么这么设计」的叙述——那些是人的事，机械校验只会制造假精确。覆盖率只校行覆盖率一个维度（分支/函数与关键模块逐项值随时可 `--report` 复算，写进文档反而必然漂移）。
+
+跑一轮约 40s（内部要跑全量测试取真相）。日常不必主动跑，`check-all.sh` 会带上。
 
 ### 覆盖率口径说明（TD-QA-006，2026-10-13 修正）
 
