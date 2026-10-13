@@ -166,28 +166,86 @@
 **不执行 §3.3 三问**——§3.2 判定为其他类型，按 §3.4 跳过（记录见 `docs/CI.md` §3）。本轮阶段 3 全部是「补齐既有门禁盲区」，不生成任何 `.github/workflows/` 打包流水线：
 
 1. 修 `check-coverage.js` 口径：排除与根字节一致的 `plugin/` 副本（TD-QA-006）；阈值重算并在 PR 说明
-2. 加低覆盖下限：任一仓库内源文件行覆盖 < 阈值（建议 30%）即失败，配白名单豁免（TD-QA-007）
-3. 接线 `verify-settings-sources.js` 或明确归档（TD-CI-001，**删除须单独征求同意**）
-4. 修 `check-doc-links.js` 的 `CODE_PATH_RE` 解析规则并接入 `--strict`，或删除死代码（TD-CI-002）
+2. 加低覆盖下限：任一仓库内源文件行覆盖 < 阈值即失败，配 `floor.exempt` 白名单（TD-QA-007，最终定 50%，非原建议 30%）
+3. 接线 `verify-settings-sources.js`（TD-CI-001；用户决策 D5=接线而非归档，删除未发生故无需 R5 同意记录）
+4. 删除 `check-doc-links.js --strict` 死代码 + GATES.md 注明范围（TD-CI-002；用户决策 D6）
 5. 扩展 `check-sh-ps1-pair.js` 的 `PAIRS`：加 `plugin/hooks/session-start`↔`.ps1`、`notification`↔`.ps1`（TD-COMPLEX-005）
 6. 安装本机 pre-push 钩子（TD-OPS-001）
-7. 更新 `docs/GATES.md`：每个新门禁写清检查名/触发时机/失败含义/修复指引/豁免方式
-8. 本地一条命令复现验证：`bash scripts/check-all.sh` 仍全绿
+7. 根治测试临时目录泄漏 + 接入门禁（TD-QA-008，**本轮落地时新发现的 P1**）
+8. 更新 `docs/GATES.md`：每个新门禁写清检查名/触发时机/失败含义/修复指引/豁免方式
+9. 本地一条命令复现验证：`bash scripts/check-all.sh` 仍全绿
+
+**落地状态（2026-10-13，commit 33263c9 / 68c1285 / 7b93a93）**：
+
+| # | 事项 | 状态 |
+|---|---|---|
+| 1 | 覆盖率口径修正 | ✅ 完成，49→46 文件，79.74%→85.08% |
+| 2 | 低覆盖下限 floor.minLineRate=50 | ✅ 完成，2 项 exempt（带 reason+expires 2027-01-13） |
+| 3 | verify-settings-sources 接线 | ✅ 完成（D5） |
+| 4 | 删除 --strict 死代码 | ✅ 完成（D6） |
+| 5 | hook 双端加入 PAIRS | ✅ 完成，负向实测 exit 1 |
+| 6 | pre-push 钩子 | ✅ 已安装 |
+| 7 | TD-QA-008 临时目录泄漏 | ✅ 已根治，162 处调用迁移，实测零新增残留 |
+| 8 | GATES.md | ✅ 已更新（含口径说明与不在校验范围两节） |
+| 9 | check-all.sh 一条命令复现 | ✅ 10 项全绿 |
 
 **可机械检查验收（每项须负向实测，禁止只看配置）**：
-- [ ] 故意把某源文件覆盖率压到低覆盖下限以下 → `check-coverage` 失败
-- [ ] 故意只改 `session-start.ps1` 不改 `session-start` → `check-sh-ps1-pair` 失败
-- [ ] 故意改名一个被反触号引用的脚本 → doc-links（strict 模式）失败
-- [ ] 覆盖率口径修正后：报告文件数 49→34，双计对消失，`--report` 输出可验证
-- [ ] 每个门禁失败信息含可执行修复指引（沿用现有约定）
-- [ ] 门禁本地一条命令复现：`bash scripts/check-all.sh`
-- [ ] 若 TD-CI-001 选择「删除」，须有用户单独同意的记录（R5）
+- [x] 故意把某源文件覆盖率压到低覆盖下限以下 → `check-coverage` 失败（实测 exit 1，点名文件）
+- [x] 故意只改 `session-start.ps1` 不改 `session-start` → `check-sh-ps1-pair` 失败（实测 exit 1）
+- [x] 覆盖率口径修正后：双计对消失、`--report` 输出可验证（实测 46 文件，双计对不再出现）
+- [x] `floor.exempt` 到期自动失效（实测改 2020-01-01 → 报「豁免已过期」exit 1）
+- [x] 每个门禁失败信息含可执行修复指引（沿用现有约定，新门禁均带修复行）
+- [x] 门禁本地一条命令复现：`bash scripts/check-all.sh`（10 项）
+- [x] 反触号路径死链一项：按 D6 决策改为「删除死代码 + 注明不在校验范围」，故不适用负向实测
+
 
 ### 阶段 4 · 问题修复与重构落地（前置：阶段 3 通过）
 
 本轮**不设业务代码重构批次**。上一轮重构成果（`install.sh` 1492→1360 行、最大函数 153→61 行）本轮复核保持。若用户在 D3 要求处理 `patch-cli.js` 1955 行，则单开批次，前置是先评估 payload/发布链路协调点（上一轮评估为 6+ 处，成本>收益，曾决策延期）。
 
 **验收**：本轮零重构提交 → 行为守恒天然成立（无改动即无行为变更）；复杂度指标与阶段 1 基线对比不变或更优。
+
+#### 附：D3 专项评估——`patch-cli.js` 拆分（2026-10-13 重评）
+
+**结构实测**：1955 行 / 50 函数。最大函数 `scanStringLiterals` 350 行、`installCli233ResidualUILocalization` 204 行、`installStatusbarToolActivityLocalization` 186 行。22 个 `install*Localization` 系列函数集中在 807–1409 行，彼此**无耦合**，只共用一个工具函数 `tryRegexReplace`（101 次调用）。
+
+**技术可行性：高**。依赖干净，可低风险抽离成 `patch-cli-localizations.js` 一类模块，主文件可降到约 1200 行。
+
+**但有一个硬约束，且它不可绕过**：
+
+`patch-cli.js` 是**带顶层执行的脚本，不是模块**（零本地 require、无 `module.exports`）。它被 3 个独立调用方以 `node patch-cli.js <参数>` 方式 spawn：
+
+| 调用方 | 位置 |
+|---|---|
+| `patch-cli.sh`（安装器与 session-start hook 的入口） | `patch-cli.sh:21` |
+| `scripts/native-repair.js`（native binary 修复） | `scripts/native-repair.js:119` |
+| `scripts/patch-bunfs.js`（clawgod bunfs 逐 chunk 复用引擎） | `scripts/patch-bunfs.js:32` |
+
+且它被 `sync-payload.sh` **整文件复制**到 `plugin/`，靠 `check-payload-sources.js` 守护字节一致。
+
+**这意味着拆分不是"改一个文件"，而是改变一份被三路 spawn、整份复制分发、靠字节比对守护的核心负载的物理形态。** 清点出的协调点共 10 处：
+
+1. `patch-cli.sh:21` — `node $SCRIPT_DIR/patch-cli.js` 指向新入口
+2. `scripts/native-repair.js:119` — spawn 参数
+3. `scripts/patch-bunfs.js:32` — `PATCH_CLI` 路径
+4. `scripts/sync-payload.sh` FILES — 新增副本文件（**复制的是文件集合，不再是单文件**）
+5. `scripts/check-payload-sources.js` payloadPairs — 新增守护对
+6. `scripts/compute-patch-revision.sh:14` — 指纹文件清单
+7. `install.sh:1219` — 调用参数
+8. `tests/patch-cli.test.js`（1626 行）— 加载路径
+9. `scripts/coverage-thresholds.json` keyFiles — `patch-cli.js` 条目含义变化
+10. `scripts/check-file-size.js` — 阈值口径变化（当前 2000 行上限就是按它设的）
+
+**关键风险**：`plugin/` 是**整目录交付**（`plugin/manifest.json` 无 files 白名单，已验证），所以分发本身无障碍。真正的风险在于 `compute-patch-revision.sh` 的**指纹机制**——它按文件集合算指纹，session-start hook 靠指纹判断"是否需要重 patch"。文件集合一变，所有已安装用户的指纹都会改变，触发一次**全局重 patch**。这是行为变更，不是纯重构。
+
+**我的结论与建议：本轮仍不拆，但把"能否拆"的前提问题留给你决定。**
+
+理由：
+- 收益：单文件 1955→约 1200 行，可读性提升；`check-file-size` 阈值可下调
+- 成本：10 处协调点 + 一次全局重 patch + `patch-cli.test.js` 1626 行测试的加载路径改造
+- 而它**当前没有任何门禁违度**（1955 < 2000 阈值），无故障关联，功能持续正常交付
+
+**若你仍要拆，必须先回答一个我无法推断的问题**：是否接受"拆分导致所有已安装用户触发一次全局重 patch"？若接受，我按 10 处协调点逐项提交（每项独立 revert）；若不接受，则拆分需设计成"文件集合不变、只在单文件内部重组"——而那对行数的改善有限，不值得做。
 
 ### 阶段 5 · 测试补全与门禁接入（前置：阶段 4 通过）
 
