@@ -8,6 +8,7 @@
   - 不存在根 `package.json`（更无 `@tauri-apps/cli` / `@tauri-apps/api` 依赖）
   - 项目形态：Bash/PowerShell 安装脚本 + Node.js 脚本 + Claude Code 插件目录（`plugin/`），通过 curl|bash、本地脚本或官方插件市场分发
 - 判定日期：2026-10-12
+- **复核（2026-10-13，本轮阶段 1 重扫）**：`grep -rl "tauri" --include="*.json" --include="*.toml" --include="*.js"` 全仓**零命中**；根目录仍无 `package.json`、无 `src-tauri/`。判定维持不变。
 
 ## 2. 现有 CI 现状（存量项目必填）
 
@@ -20,7 +21,11 @@
 
 **已有发布链路**：无 `package.json` scripts；发布流程为人工步骤（文档化在 `AGENTS.md`「版本发布流程」：改 `plugin/manifest.json` 版本 → CHANGELOG → commit → tag → push → `gh release create` → `scripts/preflight.sh --release-state` 校验）。Release 发布后由 `upload-remote-assets.yml` 接力。
 
-**审计结论（阶段 1，仅审计不改动）**：4 个 workflow 与项目形态匹配，未发现明显腐烂；无多平台桌面打包需求，现有 matrix 是测试验证用途而非打包发布，合理。缺口在「无覆盖率门禁、无 lint/格式化门禁、无文档门禁」，已登记问题清单（TD-QA-001/002/003）。
+**审计结论（2026-10-12 阶段 1，仅审计不改动）**：4 个 workflow 与项目形态匹配，未发现明显腐烂；无多平台桌面打包需求，现有 matrix 是测试验证用途而非打包发布，合理。缺口在「无覆盖率门禁、无 lint/格式化门禁、无文档门禁」，已登记问题清单（TD-QA-001/002/003）。
+
+**再审计结论（2026-10-13 本轮阶段 1）**：4 个 workflow 仍与项目形态匹配，未发现腐烂；上一轮缺口（覆盖率/门禁/文档 lint）已全部补齐并接入 `ci.yml` test job。本轮新发现 2 个 CI 相关问题，已登记 TD-CI-001 / TD-CI-002：
+- `verify-settings-sources.js` 既不在 `check-all.sh` 也不在任何 workflow 中调用——**孤儿检查工具**（写完未接线）。
+- `check-doc-links.js --strict` 模式（反引号路径死链全量校验）从未被任何入口使用，实测全仓有 86 处反引号路径引用（多为合法路径被正则误判），门禁实际只覆盖 Markdown 链接。
 
 ## 3. 交互确认记录（仅 Tauri 填写）
 
@@ -45,3 +50,4 @@
 |---|---|---|
 | 2026-10-12 | 建立本文档；框架判定为其他类型；审计现有 4 个 workflow | 阶段 1 全量扫描产出（§3.2 / §3.4） |
 | 2026-10-12 | ci.yml test job 追加 4 个门禁步骤（不新增 workflow） | 阶段 3 批次 2 落地；门禁清单见 docs/GATES.md |
+| 2026-10-13 | 框架判定复核（维持「其他类型」）；追加再审计结论（孤儿检查工具、strict 模式未接线） | 本轮阶段 1 全量重扫（§3.2）；结论登记 TD-CI-001/002 |

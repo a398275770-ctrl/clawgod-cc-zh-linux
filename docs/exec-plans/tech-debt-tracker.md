@@ -1,6 +1,7 @@
 # 技术债台账（tech-debt-tracker）
 
 > 阶段 1 全量扫描产出（2026-10-12，分支 harnessing）。
+> **第二轮扫描（2026-10-13，main 分支）**：新增条目见「第二轮（2026-10-13）」分节；上一轮结论逐条复核后保留，未发现已标「已完成」的条目退化。
 > 字段定义见《存量项目 Harness 工程化规则》附录 B。优先级：P0 阻塞/正确性安全；P1 显著抬升维护成本；P2 整洁度。
 > 表头约定（常驻）：ID / 标题 / 位置 / 类别 / 严重度 / 证据 / 修复建议 / 业务行为影响 / 关联批次 / 验收方式 / 状态。
 
@@ -25,10 +26,30 @@
 | TD-PAIR-003 | `install.sh` 缺 `sync_standalone_commands` | `install.sh` ↔ `install.ps1:572+1318` | 双端一致性 | P1 | ps1 standalone 模式把 plugin/commands/*.md 复制到 ~/.claude/commands 使 /chinese 等命令生效；sh 端缺失，standalone 模式下四个 slash 命令不可用 | 移植 sync-standalone-commands 函数并在 main() 调用 | 修复 bug | — | sh/ps1 成对；install-smoke 测试通过 | 已完成（2026-10-12，21a9eb0） |
 | TD-PAIR-004 | `uninstall.sh` 缺 slash 命令清理 | `uninstall.sh` ↔ `uninstall.ps1:407-415` | 双端一致性 | P1 | ps1 卸载时仅移除含 ownedText 标注的本插件命令桩（chinese/english/zh/en），不碰用户自定义；sh 端缺失，卸载后命令桩残留 | 移植清理段到 uninstall.sh（skill restore 之后、移除插件目录之前） | 修复 bug | — | sh/ps1 成对；语法与结构门禁通过 | 已完成（2026-10-12，21a9eb0） |
 
+## 第二轮（2026-10-13，main 分支）
+
+> 本轮定位：上一轮（2026-10-12）五阶段已全部通过，本轮是**复审 + 补漏**，不重做已完成项。基线实测：`node --test tests/` 545 用例 / 538 通过 / 0 失败 / 7 跳过 / 34.2s；`bash scripts/check-all.sh` 全绿；覆盖率整体行 79.74% / 分支 68.68% / 函数 74.31%（49 个仓库内源文件）。
+
+| ID | 标题 | 位置 | 类别 | 严重度 | 证据 | 修复建议 | 业务行为影响 | 关联批次 | 验收方式 | 状态 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| TD-QA-006 | 覆盖率口径把 `plugin/` 负载副本与根文件**双计**，整体数字失真 | `scripts/check-coverage.js:55-62`（`isRepoSourceFile`） | 测试 | P1 | lcov 报告中 root↔plugin 双计 3 对（`patch-cli.js`↔`plugin/patch-cli.js`、`bun-binary-io.js`、`scripts/detect-clawgod.js`↔`plugin/scripts/detect-clawgod.js`），`cmp` 验证均字节一致。实测：49 文件整体 79.74%（12996/16297）；剔除 15 个 plugin 副本后 **34 文件真实口径 85.19%**（9563/11225），副本口径 67.69% 把整体拉低 5.45 个百分点。副本是同一份代码，测一次就够 | `isRepoSourceFile` 排除 `plugin/` 下与根同名的字节一致副本（或按 `sync-payload.sh` 的 FILES 清单判定）；阈值随之重算并在 PR 说明 | 无 | 批次 1 | `node scripts/check-coverage.js --report` 输出文件数由 49 降为 34；双计对不再出现；阈值重算后仍有 ≥5% 余量 | 待处理 |
+| TD-QA-007 | 覆盖率门禁只查「阈值内文件」，**低覆盖文件无任何告警** | `scripts/check-coverage.js:120-128` | 测试 | P1 | 实测最低 3 个文件：`scripts/native-repair.js` 13.5%（24/178，上一轮已登记为已知缺口但无门禁）、`plugin/bun-binary-io.js` 20.2%（193/957，副本口径拉低）、`plugin/skill-i18n/translate.js` 57.7%。整体阈值 75% 下这些文件拖累整体却无人被点名 | 增加「最低行覆盖下限」（如任一仓库内源文件 <30% 即失败，可配 `floorFiles` 白名单豁免）；或输出 top-N 低覆盖文件清单入 CI 摘要 | 无 | 批次 1 | 人为把某文件覆盖率压到下限以下时门禁失败（负向实测）；正常状态门禁仍绿 | 待处理 |
+| TD-CI-001 | `verify-settings-sources.js` 是**孤儿检查工具**（写完未接线） | `scripts/verify-settings-sources.js`（195 行，覆盖 70.5%） | 架构 | P2 | 逐个 grep `scripts/check-all.sh`、`scripts/preflight.sh`、`.github/workflows/ci.yml` 均无引用；它校验 settings 数据源一致性，与既有 `check-payload-sources.js` 职责相邻 | 二选一：①接入 `check-all.sh` 与 ci.yml（若职责未被覆盖）；②确认为冗余则归档删除（**删除须单独征求用户同意**，R5） | 无 | 批次 1 | 该脚本出现在 `bash scripts/check-all.sh` 输出中；或形成明确的删除决策记录 | 待处理 |
+| TD-CI-002 | `check-doc-links.js --strict` 模式**从未被任何入口使用**，文档门禁实际只覆盖 Markdown 链接 | `scripts/check-doc-links.js:64`；`scripts/check-all.sh:33`、`.github/workflows/ci.yml:41` | 文档 | P2 | `--strict` 开启反引号路径校验，实测全仓 **86 处**命中（多为合法路径如 `scripts/generate-support-matrix.js` 被 CODE_PATH_RE 误判为相对文档目录解析失败）。当前 CI/本地均不带 `--strict`，故反引号路径死链（如把 `scripts/foo.js` 改名）不会被拦截 | 二选一：①修 CODE_PATH_RE 解析规则（相对仓库根而非文档目录解析）后接入 `--strict`；②删除 `--strict` 死代码并在 GATES.md 注明「反引号路径不在校验范围」 | 无 | 批次 1 | 改名一个被反引号引用的脚本，门禁失败（若选①）；或 `--strict` 分支被移除且有记录（若选②） | 待处理 |
+| TD-COMPLEX-005 | `session-start` hook 双端实现**不受成对变更门禁保护** | `plugin/hooks/session-start`（633 行 bash）↔ `plugin/hooks/session-start.ps1`（583 行） | 双端一致性 | P1 | `scripts/check-sh-ps1-pair.js:26-29` 的 `PAIRS` 只含 `install.*`/`uninstall.*` 两对；hook 双端共 1216 行、承载「注入中文上下文 + Release 更新检测 + 版本变更重 patch」核心逻辑，与 TD-PAIR-001~004 属同类风险。且 `sync-payload.sh` 不碰 `plugin/hooks/`，该目录是独立源，改动完全靠人自觉 | 把 `plugin/hooks/session-start`↔`.ps1`、`plugin/hooks/notification`↔`.ps1` 加入 `PAIRS`；`plugin/hooks/session-start.js`（68 行，sh 的 node 入口）与 `.cmd` 一并评估 | 无 | 批次 1 | 故意只改 hook 一端，门禁失败（负向实测）；`tests/session-start-hook.test.js`（1825 行，双端共覆盖）仍全绿 | 待处理 |
+| TD-DOC-003 | `docs/HARNESS-RULES.md` 与 `docs/turn-project-to-harness-rules.md` **逐字节重复 1101 行 ×2**，且均未 git 跟踪 | 仓库根 `docs/` | 文档 | P2 | `cmp -s` 验证两份完全相同；`git status` 显示两者均为 `??`（未跟踪）。按 §14.5，母本应放 `docs/templates/`（本仓库无该目录）或独立模板仓库，仓库内只留一份副本。双份重复使后续任何规则修订都要改两处，且 doc-lint 的 `LINK_SOURCES` 未纳入它们（改坏了不会被拦截） | 保留一份为 `docs/HARNESS-RULES.md`（施工图）；另一份若需作母本移入 `docs/templates/` 并在头部加指针。**两份当前都未跟踪，需先决定是否入库**（属范围决策，问用户） | 无 | 批次 1 | `docs/` 下 HARNESS-RULES 仅一份（或 templates 副本 + 一份施工图）；`cmp` 无重复 | 待处理 |
+| TD-OPS-001 | 本机仓库未安装 pre-push 钩子，本地门禁靠人自觉 | `.git/hooks/pre-push`（不存在） | 架构 | P2 | `scripts/install-git-hooks.sh` 提供一键安装，但本机当前 checkout 未执行；`.githooks`/`.husky` 均不存在。上一轮只交付了「可安装」而未确保「已安装」 | 安装并纳入验收：`bash scripts/install-git-hooks.sh`；后续在新会话/新 clone 的 DoD 中显式检查 | 无 | 批次 1 | `.git/hooks/pre-push` 存在且含 `claude-code-zh-cn pre-push gate` 标记 | 待处理 |
+| TD-DOC-004 | `docs/exec-plans/active/` 为空目录，但 `AGENTS.md` 与附录 E 均指引智能体去那里找当前计划 | `docs/exec-plans/active/`（0 文件）；`AGENTS.md:13` | 文档 | P2 | `ls -A docs/exec-plans/active/` 为空；本轮计划将写入该目录，属于本轮自愈项。但若计划完成后被移入 `completed/` 而 AGENTS.md 未同步，该指针会再次变成死指引 | 本轮计划写入即修复；同时在 AGENTS.md 措辞上说明「无进行中计划时该目录为空」 | 无 | 批次 1 | `active/` 含本轮计划；doc-links 通过；计划归档后 AGENTS.md 指引仍成立 | 待处理 |
+
 ## 已审计确认无问题的项（防重复登记）
 
 - **root ↔ `plugin/` 负载复制**：`patch-cli.js`、`bun-binary-io.js`、`cli-translations.json` 等双份存在且逐字节一致（diff 验证），属有意设计（插件分发负载），已有 `payload-source-guard.test.js` 与 `preflight.sh --payload-source` 机械守护。**不是债务。**
+- **`plugin/scripts/install-json-helper.js` 与根副本有 4 行差异**：diff 显示唯一差异是 `require("../plugin/scripts/build-overlay.js")` vs `require("./build-overlay.js")`——目录布局不同导致的相对路径适配，文件头注释已说明，`tests/install-json-helper.test.js` 守护。**不是债务。**
 - **翻译数据单一数据源**：`verbs/zh-CN.json`（187）/`tips/zh-CN.json`（41）唯一来源，README/AGENTS 声称的 2314 条与 `cli-translations.json` 实际条目数一致（python json 计数）。**符合不变量。**
-- **测试基线**：492 用例 485 通过 0 失败（2026-10-12 实测），测试密度高于一般存量项目。
+- **测试基线**：545 用例 538 通过 0 失败 / 7 跳过（2026-10-13 实测，34.2s），测试密度高于一般存量项目。
 - **CI 现状**：4 个 workflow 与项目形态匹配，未发现腐烂配置（详见 `docs/CI.md`）。
-- **业务行为变更类问题**：本次扫描**未发现**需要改行为的 bug 类条目；全部为「无行为影响」的重构/护栏类。
+- **业务行为变更类问题**：两轮扫描均**未发现**需要改行为的 bug 类条目；全部为「无行为影响」的重构/护栏类。
+- **安全**：`sk-ant-`/`AKIA`/`ghp_`/私钥 PEM 模式扫描零命中；`password|secret|api_key|token` 硬编码扫描（排除 `process.env`/`${}`）零命中。无 `package.json` 故无 lockfile 可扫漏洞；唯一外部依赖 `node-lief@1.3.2` 固定版本且有 `check-deps` + 优雅降级。`install-remote.sh` 的 curl|bash 是分发设计，非漏洞。
+- **框架判定**：非 Tauri（全仓 grep `tauri` 零命中），不触发 §3.3 三问；无多平台打包需求，现有 matrix 均为测试验证用途。
+- **`pack-staging/`、`claude-code-win32-x64-2.1.113.tgz`、`patch.log`**：均已被 `.gitignore` 覆盖且未跟踪，属本地打包/下载残留。**不是债务**（`.gitignore` 的注释已声明「绝不该提交」）。
+- **sh 端有 `install-remote.sh`/`uninstall-remote.sh` 而 ps1 端有 `install-local.ps1`/`rollback-local.ps1`**：属平台分发形态差异（远程 curl|bash vs 本地离线 ZIP），非同一逻辑的双端实现，不适用 sh/ps1 成对规则。**不是债务**（若用户认为需要对称，列入待决策）。
