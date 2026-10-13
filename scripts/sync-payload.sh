@@ -8,6 +8,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 FILES=(
   "patch-cli.sh"
   "patch-cli.js"
+  "patch-cli-localizations.js"
   "cli-translations.json"
   "bun-binary-io.js"
   "compute-patch-revision.sh"

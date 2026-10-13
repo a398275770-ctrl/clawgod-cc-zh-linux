@@ -3,7 +3,8 @@
  * check-file-size.js — 文件大小上限门禁（品味不变量 T1，零依赖）
  *
  * 规则：git 跟踪的 *.js / *.sh / *.ps1 文件不得超过 MAX_LINES 行。
- * 当前存量最大 1938 行（patch-cli.js），上限设为 2000 —— 阻止继续膨胀；
+ * 当前存量最大 1382 行（install.ps1）；patch-cli.js 已于 2026-10-13 抽离
+ * patch-cli-localizations.js（1955 → 1127 行），上限 2000 保持 —— 阻止继续膨胀；
  * 存量超大文件的压降目标见 docs/exec-plans/tech-debt-tracker.md（TD-COMPLEX-*）。
  *
  * 豁免：scripts/gate-exemptions.json 中按文件登记（须带 reason 与 expires）。

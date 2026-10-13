@@ -47,7 +47,7 @@ fi
 
 # 负载一致性：根 6 文件与 plugin/ 副本必须逐字节一致
 run "plugin 负载一致性"      bash -c '
-  for f in patch-cli.sh patch-cli.js cli-translations.json bun-binary-io.js compute-patch-revision.sh settings-overlay.json; do
+  for f in patch-cli.sh patch-cli.js patch-cli-localizations.js cli-translations.json bun-binary-io.js compute-patch-revision.sh settings-overlay.json; do
     cmp -s "$f" "plugin/$f" || { echo "负载不一致: $f ↔ plugin/$f —— 修复：bash scripts/sync-payload.sh"; exit 1; }
   done
 '

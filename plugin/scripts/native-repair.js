@@ -8,7 +8,7 @@ const os = require("node:os");
 const crypto = require("node:crypto");
 const { execFileSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
-const revisionFiles = ["patch-cli.sh", "patch-cli.js", "cli-translations.json", "bun-binary-io.js", "compute-patch-revision.sh", "scripts/patch-bytecode.js", "scripts/native-repair.js"];
+const revisionFiles = ["patch-cli.sh", "patch-cli.js", "patch-cli-localizations.js", "cli-translations.json", "bun-binary-io.js", "compute-patch-revision.sh", "scripts/patch-bytecode.js", "scripts/native-repair.js"];
 function hash(file) {
   const h = crypto.createHash("sha256"), fd = fs.openSync(file, "r"), buffer = Buffer.alloc(1024 * 1024);
   try { let n; while ((n = fs.readSync(fd, buffer, 0, buffer.length, null))) h.update(buffer.subarray(0, n)); }

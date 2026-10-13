@@ -13,6 +13,7 @@ const root = process.argv[2];
 const files = [
   "patch-cli.sh",
   "patch-cli.js",
+  "patch-cli-localizations.js",
   "cli-translations.json",
   "bun-binary-io.js",
   "compute-patch-revision.sh",

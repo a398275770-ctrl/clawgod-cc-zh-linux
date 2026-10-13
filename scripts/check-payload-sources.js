@@ -10,6 +10,7 @@ const defaultRepoRoot = path.resolve(__dirname, "..");
 const payloadPairs = [
   { source: "patch-cli.sh", mirror: "plugin/patch-cli.sh" },
   { source: "patch-cli.js", mirror: "plugin/patch-cli.js" },
+  { source: "patch-cli-localizations.js", mirror: "plugin/patch-cli-localizations.js" },
   { source: "cli-translations.json", mirror: "plugin/cli-translations.json" },
   { source: "bun-binary-io.js", mirror: "plugin/bun-binary-io.js" },
   { source: "compute-patch-revision.sh", mirror: "plugin/compute-patch-revision.sh" },
