@@ -16,7 +16,7 @@
 
 | 文档 | 说明 |
 |---|---|
-| `exec-plans/active/harness-migration.md` | 进行中：Harness 改造复审计划（2026-10-13 第二轮，待用户确认） |
+| `exec-plans/completed/harness-migration-2026-10-13.md` | 归档：Harness 改造复审计划（第二轮，已竣工） |
 | `exec-plans/tech-debt-tracker.md` | 技术债台账 |
 | `exec-plans/completed/2026-04-21-native-binary-latest-support-research-brief.md` | 归档：native latest 支持调研 |
 | `exec-plans/completed/2026-04-30-macos-native-experimental-validation.md` | 归档：macOS native 实验验证 |

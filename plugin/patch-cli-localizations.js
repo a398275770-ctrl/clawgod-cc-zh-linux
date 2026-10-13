@@ -3,7 +3,7 @@
  * patch-cli-localizations.js — cli.js 结构化本地化补丁（从 patch-cli.js 抽离，2026-10-13）
  *
  * 背景：patch-cli.js 原 1955 行 / 50 函数，本文件容纳其中 23 个 install* 结构化补丁函数
- * （约 800 行）。抽离动机见 docs/exec-plans/active/harness-migration.md 的 D3 专项评估。
+ * （约 800 行）。抽离动机见 docs/exec-plans/completed/harness-migration-2026-10-13.md 的 D3 专项评估。
  *
  * 为什么是独立文件而不是函数拆分后就地重组：
  * patch-cli.js 是带顶层执行的脚本（非模块），被三路 spawn——patch-cli.sh、scripts/native-repair.js、

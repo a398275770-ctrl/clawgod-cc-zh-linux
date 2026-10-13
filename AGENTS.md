@@ -56,3 +56,6 @@ Claude Code CLI 中文本地化插件：通过 settings 注入、插件 hooks、
 - 仓库身份与上游同步策略见 `CLAUDE.md`「仓库身份与上游关系」：本仓库是独立维护 fork，`origin` 为上游只读，不做定期 rebase
 - 计划写在 `docs/exec-plans/active/`，完成后移入 `completed/`
 - 交互式决策确认后必须写入仓库文档（落盘才算数）
+- **重构红线 R1–R8 见 `docs/design-docs/core-beliefs.md`**（行为守恒 / 显式登记 / 先护栏后动手 / 不做范围外优化 / 不删无法判断的内容 / 每步可回滚）；不确定的产品语义先问人，不自行猜测
+- **提示词记录**：仓库根 `prompt-history.txt`（已 gitignore，不推送）——只追加、不读取、不整理；少于 10 个字的寒暄不记
+
