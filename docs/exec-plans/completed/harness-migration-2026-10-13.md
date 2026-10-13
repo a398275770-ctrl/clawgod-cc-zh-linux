@@ -322,6 +322,7 @@
 | 2026-10-13 | 3 | 根治测试临时目录泄漏（TD-QA-008，落地时新发现的 P1）：mkTmpDir 自动清理 + 迁移 162 处 + 门禁防回归 | 7b93a93 | 用户授权清理 /tmp/cczh-* 10977 目录；实测全量测试零新增残留 |
 | 2026-10-13 | 3 | 阶段 3 落地记录与 D3 专项评估；台账第二轮 9 条结清 | cffe84c | D2=只拦增量；TD-COMPLEX-002/SEC-001 保持待处理 |
 | 2026-10-13 | 4 | D3 拆分实施：23 个 install* 补丁抽离到 patch-cli-localizations.js（1955→1127 行） | 2e52a58 | 用户接受指纹变化触发一次重 patch；动手前手动快照 settings.json 与 cc-switch.db；行为守恒对拍 28 次替换逐字节一致 |
+| 2026-10-13 | 交付 | 合并 main（fast-forward，76 文件）并推送 fork：main 与 harnessing 均至 f887ae2 | f887ae2 | https remote 的 gh 凭据不提供 password（gh 仅配 ssh 协议），改用 ssh:// URL 推送；fork/main 与 fork/harnessing 已 fetch 到本地追踪引用 |
 | 2026-10-13 | 收官 | §14.6 自检发现 R1-R8 红线与反模式清单未被常驻文档承载（原只在施工图 §9/§12），补齐进 core-beliefs.md 与 AGENTS.md 后自检通过；执行归档 | （本次提交） | 自检不过不归档——这是 §14.6 的硬门槛 |
 | 2026-10-13 | 1 | 待用户确认计划与 D1-D6 决策 | — | — |
 
