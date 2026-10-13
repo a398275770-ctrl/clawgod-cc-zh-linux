@@ -10,7 +10,7 @@ Claude Code CLI 中文本地化插件：通过 settings 注入、插件 hooks、
 
 - 架构总览：见 `ARCHITECTURE.md`
 - 设计理念与操作原则：见 `docs/design-docs/core-beliefs.md`
-- 当前执行计划：见 `docs/exec-plans/active/`
+- 当前执行计划：见 `docs/exec-plans/active/`（无进行中计划时该目录为空）
 - 已知技术债：见 `docs/exec-plans/tech-debt-tracker.md`
 - CI 与发布决策：见 `docs/CI.md`
 - 文档总索引：见 `docs/index.md`

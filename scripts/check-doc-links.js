@@ -3,11 +3,16 @@
  * check-doc-links.js — 文档死链与必填节校验（零依赖，D2 决策）
  *
  * 检查项：
- *   1. Markdown 相对链接（含 `code` 形式的路径引用）指向的文件必须存在；
+ *   1. Markdown 相对链接（`[文字](路径)` 形式）指向的文件必须存在；
  *   2. docs/index.md 中表格列出的每个 `path` 引用必须存在；
  *   3. 关键文档必须含必填节（见 REQUIRED_SECTIONS）。
  *
- * 用法：node scripts/check-doc-links.js [--dir <docs目录>] [--strict]
+ * **不在校验范围**：反引号包裹的路径引用（如 `scripts/check-all.sh`）。
+ * 原因：全仓文档对反引号路径的写法混用「相对仓库根」与「相对文档所在目录」两种约定，
+ * 机械解析无法区分二者，实测 86 处命中中多数为合法路径的误判（2026-10-13 台账 TD-CI-002）。
+ * 该类引用靠 code review 保证；如需机械校验，先统一全仓写法约定再实现。
+ *
+ * 用法：node scripts/check-doc-links.js
  * 退出码：0 通过；1 存在死链/缺节。
  *
  * 修复指引：报错信息会给出文件与链接，修正路径或在 docs/index.md 同步条目。
@@ -43,13 +48,12 @@ const LINK_SOURCES = [
   "docs/exec-plans/tech-debt-tracker.md",
 ];
 
-// 匹配 markdown 链接 [x](path) 与反引号包裹的相对路径 `path`
+// 匹配 markdown 链接 [x](path)
 const MD_LINK_RE = /\[[^\]]*\]\(([^)#\s]+)(?:#[^)]*)?\)/g;
-const CODE_PATH_RE = /`((?:\.\.\/|[a-zA-Z0-9_-]+\/|\.\/)?[a-zA-Z0-9_./-]+\.(?:md|json|sh|js|ps1|yml|yaml|txt))`/g;
 
 const IGNORE_PREFIXES = ["http://", "https://", "mailto:"];
 
-function checkFileLinks(file, strict) {
+function checkFileLinks(file) {
   const abs = path.join(REPO_ROOT, file);
   if (!fs.existsSync(abs)) {
     return [`MISSING SOURCE: ${file} 本身不存在（从 LINK_SOURCES 移除或创建该文件）`];
@@ -61,7 +65,6 @@ function checkFileLinks(file, strict) {
   const candidates = [];
   let m;
   while ((m = MD_LINK_RE.exec(content))) candidates.push(m[1]);
-  if (strict) while ((m = CODE_PATH_RE.exec(content))) candidates.push(m[1]);
 
   for (const raw of candidates) {
     if (IGNORE_PREFIXES.some((p) => raw.startsWith(p))) continue;
@@ -97,10 +100,8 @@ function checkRequiredSections() {
 
 function main() {
   const args = process.argv.slice(2);
-  const strict = args.includes("--strict");
-
   let errors = [];
-  for (const f of LINK_SOURCES) errors = errors.concat(checkFileLinks(f, strict));
+  for (const f of LINK_SOURCES) errors = errors.concat(checkFileLinks(f));
   errors = errors.concat(checkRequiredSections());
 
   if (errors.length) {

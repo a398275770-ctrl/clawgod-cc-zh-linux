@@ -23,11 +23,15 @@
 ## 评分依据（可复算，2026-10-13 实测）
 
 - **测试基线**：`node --test tests/` → 545 用例 / 538 通过 / 7 跳过 / 0 失败 / 34.4s。
-- **复杂度**：`wc -l` 与 awk 函数度量——`install.sh` 1360 行（最大函数 61 行，`ccswitch_sync_apply`）、`install.ps1` 1326 行、`patch-cli.js` 1938 行/63 函数。
-- **覆盖率**：`node scripts/check-coverage.js` → 整体行覆盖 79.75% / 分支 68.74% / 函数 74.27%；关键模块全部达标（patch-cli.js 93.55%、check-doc-links.js 95.61%、reconcile-standalone-hooks.js 91.87% 等 9 项）。
+- **复杂度**：`wc -l` 与 awk 函数度量——`install.sh` 1360 行（最大函数 61 行，`ccswitch_sync_apply`）、`install.ps1` 1382 行、`patch-cli.js` 1955 行/63 函数。
+- **覆盖率**（**双口径并列，见 TD-QA-006**）：
+  - 门禁当前口径（含 `plugin/` 副本双计，49 文件）：整体行 79.74% / 分支 68.68% / 函数 74.31%；关键模块全部达标（patch-cli.js 93.55%、check-doc-links.js 95.61%、reconcile-standalone-hooks.js 91.87% 等 9 项）。
+  - **真实口径**（剔除与根字节一致的 `plugin/` 副本，34 文件）：行 **85.19%**（9563/11225）。副本口径 67.69% 把整体拉低 5.45 个百分点，而副本本就是同一份代码测一次即够。
+  - 低覆盖盲区（TD-QA-007，门禁不点名）：`scripts/native-repair.js` 13.5%（24/178）、`plugin/skill-i18n/translate.js` 57.7%、`scripts/generate-upstream-text-diff.js` 69.7%。
 - **门禁**：CI 含 preflight + node --test + 覆盖率 + 结构测试 + 文档 lint + 版本对齐 + 双端成对；本地 `check-all.sh` 一条命令复现全部；pre-push 钩子可安装（`scripts/install-git-hooks.sh`）。
-- **双端对齐**：5 处存量不对称已修复（TD-PAIR-001~004 + clawgod bunfs 还原）；`check-sh-ps1-pair.js` 拦截增量漂移；存量对称性基线检查为已知盲区（TD-COMPLEX-002）。
+- **双端对齐**：5 处存量不对称已修复（TD-PAIR-001~004 + clawgod bunfs 还原）；`check-sh-ps1-pair.js` 拦截 install/uninstall/hook 双端增量漂移；存量对称性基线检查为已知盲区（TD-COMPLEX-002）。
 - **重复**：root↔plugin 负载复制为有意设计且有守护；sh/ps1 双实现为有意冗余（D3）；真重复项见台账 TD-COMPLEX-002/004。
+- **文档体系**：`docs/index.md` + 死链/必填节门禁 + 派生计数同步；`HARNESS-RULES.md` 施工图副本与 `templates/HARNESS-RULES.md` 母本已分离（2026-10-13 D4）。**反触号路径引用不在机械校验范围**（TD-CI-002）。
 
 ## 目标与差距
 

@@ -33,6 +33,7 @@ run() {
 run "文档死链/必填节"        node scripts/check-doc-links.js
 run "文件大小上限"           node scripts/check-file-size.js
 run "版本声明点对齐"         node scripts/check-version-alignment.js
+run "翻译数据源守护"         node scripts/verify-settings-sources.js
 run "文档派生计数同步"       node scripts/sync-doc-derived-counts.js --check
 run "结构约束（S1/S2）"      node scripts/check-structure.js
 

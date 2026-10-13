@@ -56,3 +56,10 @@
 | `../site/` | 项目站点（pages.yml 部署） |
 | `../CHANGELOG.md` | 版本变更记录 |
 | `../SPEC.md` / `../CONTRIBUTING.md` / `../LOCAL-DELIVERY.md` | 规范 / 贡献指南 / 本地交付说明 |
+
+## 施工期规范（harness 改造期间常驻）
+
+| 位置 | 说明 |
+|---|---|
+| `HARNESS-RULES.md` | **施工图副本**（本仓库改造入口规范，每次新会话先读；竣工后按 §14.3 归档） |
+| `templates/HARNESS-RULES.md` | **母本**（服务未来所有项目的模板原件；每做完一个改造项目回流迭代一次，见 §14.5） |

@@ -3,8 +3,15 @@
  * check-sh-ps1-pair.js — sh/ps1 成对变更检查（决策 D3：保持双实现，改动必须成对）
  *
  * 规则：diff 范围内变更了成对文件的一侧而另一侧未变，即失败：
- *   install.sh  ↔  install.ps1
- *   uninstall.sh ↔ uninstall.ps1
+ *   install.sh              ↔  install.ps1
+ *   uninstall.sh            ↔  uninstall.ps1
+ *   plugin/hooks/session-start      ↔  plugin/hooks/session-start.ps1
+ *   plugin/hooks/notification       ↔  plugin/hooks/notification.ps1
+ *
+ * hook 双端于 2026-10-13 纳入（台账 TD-COMPLEX-005）：此前 PAIRS 只含 install/uninstall，
+ * 而 session-start hook 双端共 1216 行、承载「注入中文上下文 + Release 更新检测 +
+ * 版本变更重 patch」核心逻辑，属上一轮 TD-PAIR-001~004 同类风险却无门禁保护。
+ * 注：`session-start.cmd` / `notification.cmd` 是 2 行转发壳（调对应 .ps1），不纳入。
  *
  * 豁免：diff 范围内任一 commit message 含 "pair-exempt: <原因>" 即放行（显式、可追溯）。
  *
@@ -26,6 +33,8 @@ const BASE = baseIdx >= 0 ? args[baseIdx + 1] : "origin/main";
 const PAIRS = [
   ["install.sh", "install.ps1"],
   ["uninstall.sh", "uninstall.ps1"],
+  ["plugin/hooks/session-start", "plugin/hooks/session-start.ps1"],
+  ["plugin/hooks/notification", "plugin/hooks/notification.ps1"],
 ];
 
 function git(...gitArgs) {
