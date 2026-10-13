@@ -2,6 +2,21 @@
 
 > 项目地图与硬性约束见 `AGENTS.md`。本文件只保留**维护操作细节**，不重复架构与规则。
 
+## 仓库身份与上游关系（2026-10-13 决策）
+
+本仓库 `a398275770-ctrl/clawgod-cc-zh-linux` 是 `claude-code-zh-cn` 的**独立维护 fork**，面向 clawgod 安装形态（Linux + Windows）。
+
+- **远程配置**：`origin` = 上游 `taekchef/claude-code-zh-cn`（只读参考，不推送）；`fork` = 本仓库（推送目标）
+- **上游同步策略：独立维护（2026-10-13 用户决策）**——不做定期 rebase，只按需 cherry-pick 上游需要的改动（通常是翻译条目与版本支持矩阵）
+- 何时考虑 cherry-pick：上游发布了**本仓库形态也需要的新翻译**或**安全修复**时；操作方式：
+  ```bash
+  git fetch origin
+  git cherry-pick <upstream-commit>   # 或手动把翻译条目合并进 cli-translations.json
+  ```
+- 何时考虑 rebase：上游发生了**结构性重构**（如 patch 引擎重写）导致本仓库改动大面积冲突时；需先评估冲突面再决定
+- 版本线独立：本仓库版本号不与上游对齐，按本仓库 CHANGELOG 语义化推进（当前 v2.24.0）
+- 发布流程同下文，但推送目标为 `fork`：`git push fork main --tags`
+
 ## 数据流（翻译数据单一来源）
 
 - `verbs/zh-CN.json` — 187 个 spinner 动词翻译（**唯一数据源**）

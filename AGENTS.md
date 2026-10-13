@@ -52,6 +52,7 @@ Claude Code CLI 中文本地化插件：通过 settings 注入、插件 hooks、
 
 - 变更前先读相关 `docs/`，变更后同步更新文档与 `docs/index.md`
 - 提交粒度单一职责，Conventional Commits；会话最后一次提交须过本地门禁
-- 版本发布按 `CLAUDE.md`「版本发布流程」执行，发布后跑 `bash scripts/preflight.sh --release-state`
+- 版本发布按 `CLAUDE.md`「版本发布流程」执行（推送到 `fork` 远程，不是 `origin`），发布后跑 `bash scripts/preflight.sh --release-state`
+- 仓库身份与上游同步策略见 `CLAUDE.md`「仓库身份与上游关系」：本仓库是独立维护 fork，`origin` 为上游只读，不做定期 rebase
 - 计划写在 `docs/exec-plans/active/`，完成后移入 `completed/`
 - 交互式决策确认后必须写入仓库文档（落盘才算数）
