@@ -20,6 +20,10 @@
 | TD-QA-005 | 7 个跳过测试无显式登记 | `node --test` 输出 skipped=7 | 测试 | P2 | 全量测试 492 中 7 skipped；未在仓库文档说明跳过原因与恢复条件 | 已登记进 docs/TESTING.md「跳过用例登记」 | 无 | 批次 4 | 7 个跳过全部带原因与恢复条件（均为 Windows 平台条件，由 Windows CI 覆盖） | 已完成（2026-10-12，决策 D5） |
 | TD-SEC-001 | 安全扫描未发现硬编码凭证（登记为已审计项） | 全仓 `*.js/*.sh/*.json` | 安全 | P2 | `grep -iE "sk-ant-|api_key|secret|token|password"` 命中 10 文件，抽查均为环境变量名引用（ANTHROPIC_API_KEY）或翻译文案内容，非真实凭证 | 无需修复；阶段 3 可考虑把秘密扫描加入 preflight 防回归 | 无 | 批次 2 | preflight 含秘密扫描步骤（可选） | 待处理 |
 | TD-REL-001 | 发布流程为人工 7 步，无机械防呆 | `AGENTS.md`「版本发布流程」 | 性能/可靠性 | P2 | 发布依赖人按序执行 7 步；顺序错（先 tag 后改 manifest）无本地拦截，只有事后 `preflight.sh --release-state` 校验 | 已落地 pre-push 版本对齐校验（check-all.sh 内含 check-version-alignment.js） | 无 | 批次 2 | 故意制造版本漂移时校验失败（tests/version-alignment.test.js 实测） | 已完成（2026-10-12） |
+| TD-PAIR-001 | `install.sh` 缺 `.language-mode` 英文保留逻辑 | `install.sh:main()` ↔ `install.ps1:1310-1316` | 双端一致性 | P0 | ps1 检测 `.language-mode=en` 时跳过 merge-settings 保留用户英文选择；sh 端无条件 merge_settings，用户选英文后重装被覆盖回中文 | 移植 ps1 逻辑到 install.sh main() | 修复 bug | — | sh/ps1 成对；install-smoke/language-switch 测试通过 | 已完成（2026-10-12，c308b9f） |
+| TD-PAIR-002 | `uninstall.ps1` 缺 clawgod bunfs 还原 | `uninstall.ps1` ↔ `uninstall.sh:407-422` | 双端一致性 | P0 | sh 端卸载时 detect-clawgod.js + patch-bunfs.js --restore 还原 bunfs；ps1 完全缺失，Windows 卸载后 bunfs 中文 patch 永久残留 | 移植 sh 还原段到 uninstall.ps1（cli.js 还原之后、skill restore 之前） | 修复 bug | — | sh/ps1 成对；语法与结构门禁通过 | 已完成（2026-10-12，c308b9f） |
+| TD-PAIR-003 | `install.sh` 缺 `sync_standalone_commands` | `install.sh` ↔ `install.ps1:572+1318` | 双端一致性 | P1 | ps1 standalone 模式把 plugin/commands/*.md 复制到 ~/.claude/commands 使 /chinese 等命令生效；sh 端缺失，standalone 模式下四个 slash 命令不可用 | 移植 sync-standalone-commands 函数并在 main() 调用 | 修复 bug | — | sh/ps1 成对；install-smoke 测试通过 | 已完成（2026-10-12，21a9eb0） |
+| TD-PAIR-004 | `uninstall.sh` 缺 slash 命令清理 | `uninstall.sh` ↔ `uninstall.ps1:407-415` | 双端一致性 | P1 | ps1 卸载时仅移除含 ownedText 标注的本插件命令桩（chinese/english/zh/en），不碰用户自定义；sh 端缺失，卸载后命令桩残留 | 移植清理段到 uninstall.sh（skill restore 之后、移除插件目录之前） | 修复 bug | — | sh/ps1 成对；语法与结构门禁通过 | 已完成（2026-10-12，21a9eb0） |
 
 ## 已审计确认无问题的项（防重复登记）
 
