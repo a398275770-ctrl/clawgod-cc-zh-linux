@@ -38,7 +38,7 @@ bash scripts/install-git-hooks.sh   # 安装 pre-push 钩子（推送前自动�
 
 ### 覆盖率口径说明（TD-QA-006，2026-10-13 修正）
 
-`plugin/` 下与根**字节一致**的负载副本不再双计（`isPayloadMirror`）。此前 `patch-cli.js`、`bun-binary-io.js`、`scripts/detect-clawgod.js` 各被根与副本计两次，副本口径 67.69% 把整体拉低 5.45pp。修正后整体 85.02%（46 文件）。有意保留差异的副本（如 `plugin/scripts/install-json-helper.js` 的 require 路径适配）仍独立统计。
+`plugin/` 下与根**字节一致**的负载副本不再双计（`isPayloadMirror`）。此前 `patch-cli.js`、`bun-binary-io.js`、`scripts/detect-clawgod.js` 各被根与副本计两次，副本口径把整体拉低约 5.5pp。修正后真实口径行覆盖 85.54%（48 文件）；含副本的对照口径为 79.92%（51 文件）。有意保留差异的副本（如 `plugin/scripts/install-json-helper.js` 的 require 路径适配）仍独立统计。
 
 ### 不在机械校验范围的事项（2026-10-13 明确）
 
