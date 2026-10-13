@@ -2,15 +2,15 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 
 const repoRoot = path.resolve(__dirname, "..");
 const helper = path.join(repoRoot, "scripts", "install-json-helper.js");
 
 function tmpDir(name) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), name));
+  return mkTmpDir(name);
 }
 
 function runHelper(args) {

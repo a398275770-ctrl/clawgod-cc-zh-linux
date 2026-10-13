@@ -26,8 +26,11 @@ const HELPER_REL = "./helpers/tmpdir.js";
 const CHECK_ONLY = process.argv.includes("--check");
 
 // 统一形态：fs.mkdtempSync(path.join(os.tmpdir(), <expr>))
-// <expr> 是字符串字面量或模板字面量（可含 ${...}），不含逗号分隔的第二个参数
-const CALL_RE = /fs\.mkdtempSync\(\s*path\.join\(\s*os\.tmpdir\(\)\s*,\s*((?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`))\s*\)\s*\)/g;
+// <expr> 可为字符串字面量、模板字面量（可含 ${...}）或**标识符**（如 name）。
+// 标识符形态（如 `mkdtempSync(path.join(os.tmpdir(), name))`）此前不在匹配范围，
+// 导致 tests/install-json-helper.test.js 这类包装函数漏检——实测泄漏 3 个目录/轮。
+// mkTmpDir 接受任意字符串，故标识符形态同样可自动迁移。
+const CALL_RE = /fs\.mkdtempSync\(\s*path\.join\(\s*os\.tmpdir\(\)\s*,\s*((?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|[A-Za-z_$][\w$]*))\s*\)\s*\)/g;
 
 function listTestFiles() {
   return execSync("git ls-files 'tests/*.test.js'", { cwd: REPO_ROOT, encoding: "utf8" })
