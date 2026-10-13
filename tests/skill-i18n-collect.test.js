@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -6,7 +7,7 @@ const path = require("node:path");
 const collect = require("../plugin/skill-i18n/lib/collect");
 
 function setup() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-"));
+  const root = mkTmpDir("collect-");
   // 真实 skill
   fs.mkdirSync(path.join(root, "skills", "real"), { recursive: true });
   fs.writeFileSync(path.join(root, "skills", "real", "SKILL.md"), "---\nname: real\n---\n");
@@ -46,7 +47,7 @@ test("collectAll 收集 command", () => {
 // ---------- 防环（五轴 review 修复的回归守护）----------
 
 test("防环: skills 子树符号链接成环不死循环（follow=true）", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-loop-"));
+  const root = mkTmpDir("collect-loop-");
   fs.mkdirSync(path.join(root, "skills", "a"), { recursive: true });
   fs.mkdirSync(path.join(root, "skills", "b"), { recursive: true });
   fs.writeFileSync(path.join(root, "skills", "a", "SKILL.md"), "x");
@@ -59,7 +60,7 @@ test("防环: skills 子树符号链接成环不死循环（follow=true）", () 
 });
 
 test("防环: commands 子树符号链接回指祖先（follow=true，上轮漏的）", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-cmd-loop-"));
+  const root = mkTmpDir("collect-cmd-loop-");
   fs.mkdirSync(path.join(root, "commands", "sub"), { recursive: true });
   fs.writeFileSync(path.join(root, "commands", "c1.md"), "x");
   fs.writeFileSync(path.join(root, "commands", "sub", "c2.md"), "x");
@@ -70,7 +71,7 @@ test("防环: commands 子树符号链接回指祖先（follow=true，上轮漏�
 });
 
 test("collectCommandsDeep 应用 EXCLUDE_SEGS：commands/.git/x.md 不被收集", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-exclude-"));
+  const root = mkTmpDir("collect-exclude-");
   fs.mkdirSync(path.join(root, "commands", ".git"), { recursive: true });
   fs.mkdirSync(path.join(root, "commands", "keep"), { recursive: true });
   fs.writeFileSync(path.join(root, "commands", ".git", "skip.md"), "x");
@@ -84,7 +85,7 @@ test("collectCommandsDeep 应用 EXCLUDE_SEGS：commands/.git/x.md 不被收集"
 // ---------- 深递归 + plugin cache + marketplaces ----------
 
 test("深嵌套 skill 被递归发现", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-deep-"));
+  const root = mkTmpDir("collect-deep-");
   fs.mkdirSync(path.join(root, "skills", "a", "b", "c", "d"), { recursive: true });
   fs.writeFileSync(path.join(root, "skills", "a", "b", "c", "d", "SKILL.md"), "x");
   const r = collect.collectAll(root, false).filter((f) => f.kind === "skill");
@@ -92,7 +93,7 @@ test("深嵌套 skill 被递归发现", () => {
 });
 
 test("collectPluginMarkdown: plugins/cache/<mp>/<plugin>/<version>/ 三层递归", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-cache-"));
+  const root = mkTmpDir("collect-cache-");
   const cacheRoot = path.join(root, "plugins", "cache", "mymp", "myplugin", "1.0.0");
   fs.mkdirSync(path.join(cacheRoot, "skills", "p"), { recursive: true });
   fs.mkdirSync(path.join(cacheRoot, "commands"), { recursive: true });
@@ -103,7 +104,7 @@ test("collectPluginMarkdown: plugins/cache/<mp>/<plugin>/<version>/ 三层递归
 });
 
 test("collectMarketplaces: plugins/marketplaces/<name>/ 收集", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-mp-"));
+  const root = mkTmpDir("collect-mp-");
   const mpRoot = path.join(root, "plugins", "marketplaces", "myplugin");
   fs.mkdirSync(path.join(mpRoot, "skills", "s"), { recursive: true });
   fs.writeFileSync(path.join(mpRoot, "skills", "s", "SKILL.md"), "x");
@@ -116,8 +117,8 @@ test("collectMarketplaces: plugins/marketplaces/<name>/ 收集", () => {
 });
 
 test("collectAll 支持 CC Switch 等显式额外扫描根并去重", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-extra-base-"));
-  const extra = fs.mkdtempSync(path.join(os.tmpdir(), "collect-extra-root-"));
+  const root = mkTmpDir("collect-extra-base-");
+  const extra = mkTmpDir("collect-extra-root-");
   fs.mkdirSync(path.join(extra, "managed-skill"), { recursive: true });
   fs.writeFileSync(path.join(extra, "managed-skill", "SKILL.md"), "---\nname: managed\ndescription: managed skill\n---\n");
 
@@ -130,7 +131,7 @@ test("collectAll 支持 CC Switch 等显式额外扫描根并去重", () => {
 });
 
 test("空目录 / 不存在根 → collectAll 不抛", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "collect-empty-"));
+  const root = mkTmpDir("collect-empty-");
   const r = collect.collectAll(root, false);
   assert.deepEqual(r, []);
 });

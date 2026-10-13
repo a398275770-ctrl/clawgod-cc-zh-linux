@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -71,7 +72,7 @@ function fixtureCandidate({ status = "fail", auditStatus = "fail" } = {}) {
 }
 
 function runHandoff(candidate, args = []) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-failure-handoff-"));
+  const tmp = mkTmpDir("cczh-native-failure-handoff-");
   const candidatePath = path.join(tmp, "candidate.json");
   const textReportPath = path.join(tmp, "text-diff.md");
   const outputPath = path.join(tmp, "docs", "native-latest-failures", "2.1.143.md");

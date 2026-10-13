@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -14,7 +15,7 @@ function writeJson(filePath, value) {
 }
 
 function createFixtureRoot(settingsOverlay) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-sources-"));
+  const root = mkTmpDir("cczh-settings-sources-");
 
   writeJson(path.join(root, "settings-overlay.json"), settingsOverlay);
   writeJson(path.join(root, "verbs", "zh-CN.json"), {

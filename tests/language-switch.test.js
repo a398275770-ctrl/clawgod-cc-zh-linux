@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -26,7 +27,7 @@ function runHook(home, prompt) {
 }
 
 test("/chinese merges language + spinner settings and blocks the prompt", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-lang-"));
+  const home = mkTmpDir("cczh-lang-");
   const settingsFile = path.join(home, ".claude", "settings.json");
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
   fs.writeFileSync(settingsFile, "{}\n");
@@ -46,7 +47,7 @@ test("/chinese merges language + spinner settings and blocks the prompt", () => 
 });
 
 test("/english removes language + spinner settings and blocks the prompt", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-lang-"));
+  const home = mkTmpDir("cczh-lang-");
   const settingsFile = path.join(home, ".claude", "settings.json");
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
   fs.writeFileSync(
@@ -68,7 +69,7 @@ test("/english removes language + spinner settings and blocks the prompt", () =>
 });
 
 test("ordinary prompts pass through untouched", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-lang-"));
+  const home = mkTmpDir("cczh-lang-");
   const result = runHook(home, "写一个测试");
   assert.equal(result.status, 0);
   assert.deepEqual(JSON.parse(result.stdout.trim()), {});
@@ -91,7 +92,7 @@ test("command stubs exist for /chinese /english /zh /en", () => {
 });
 
 test("native /chinese failure preserves the installed patch and reports a repair failure", { skip: process.platform === "win32" }, () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-lang-"));
+  const home = mkTmpDir("cczh-native-lang-");
   const pluginRoot = path.join(home, "plugin");
   const target = path.join(home, "claude");
   fs.mkdirSync(path.join(pluginRoot, "scripts"), { recursive: true });

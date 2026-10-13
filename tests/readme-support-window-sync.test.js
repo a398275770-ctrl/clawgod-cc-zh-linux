@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -16,7 +17,7 @@ function runSync(args) {
 }
 
 function writeFixture(files) {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-readme-support-"));
+  const tmpDir = mkTmpDir("cczh-readme-support-");
   for (const [name, text] of Object.entries(files)) {
     const target = path.join(tmpDir, name);
     fs.mkdirSync(path.dirname(target), { recursive: true });

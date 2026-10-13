@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -49,7 +50,7 @@ function baseConfig(overrides = {}) {
 }
 
 function createFixture(files = {}, configOverrides = {}) {
-  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-support-boundary-"));
+  const repo = mkTmpDir("cczh-support-boundary-");
   const defaults = {
     "README.md": [
       "| macOS / npm 全局安装 | stable | 2.1.92 - 2.1.112 |",

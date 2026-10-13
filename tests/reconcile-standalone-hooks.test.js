@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -11,7 +12,7 @@ const PLUGIN_ID = "claude-code-zh-cn@claude-code-zh-cn";
 const PLUGIN_DST = "/home/x/.claude/plugins/claude-code-zh-cn";
 
 function run(settingsValue, mode) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "recon-"));
+  const dir = mkTmpDir("recon-");
   try {
     const settingsFile = path.join(dir, "settings.json");
     fs.writeFileSync(settingsFile, typeof settingsValue === "string" ? settingsValue : JSON.stringify(settingsValue));

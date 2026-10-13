@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -114,7 +115,7 @@ else process.stdout.write("");
 }
 
 function createHealthyRuntimeDoctorFixture() {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-runtime-"));
+  const home = mkTmpDir("cczh-doctor-runtime-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const { claudeBin } = createFakeNpmClaudeLayout(home, [
     "#!/usr/bin/env node",
@@ -138,7 +139,7 @@ function createHealthyRuntimeDoctorFixture() {
 }
 
 test("native receipt without a marker gives one consistent partial status", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-receipt-"));
+  const home = mkTmpDir("cczh-doctor-receipt-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude");
   fs.writeFileSync(targetPath, "#!/usr/bin/env node\nconsole.log('2.1.286')\n", { mode: 0o755 });
@@ -162,7 +163,7 @@ test("native receipt without a marker gives one consistent partial status", () =
 });
 
 test("runDoctor reports missing plugin and recommends install", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
 
   const result = runDoctor({
     repoRoot,
@@ -178,7 +179,7 @@ test("runDoctor reports missing plugin and recommends install", () => {
 });
 
 test("runDoctor reports invalid plugin manifest instead of crashing", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   fs.mkdirSync(pluginRoot, { recursive: true });
@@ -199,7 +200,7 @@ test("runDoctor reports invalid plugin manifest instead of crashing", () => {
 });
 
 test("runDoctor detects unpatched npm cli and stable version guidance", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const { claudeBin } = createFakeNpmClaudeLayout(home, [
     "#!/usr/bin/env node",
@@ -234,7 +235,7 @@ test("runDoctor detects unpatched npm cli and stable version guidance", () => {
 });
 
 test("runDoctor checks all known npm residue probes before reporting Layer 4 ok", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const { claudeBin } = createFakeNpmClaudeLayout(home, [
     "#!/usr/bin/env node",
@@ -274,7 +275,7 @@ test("runDoctor checks all known npm residue probes before reporting Layer 4 ok"
 });
 
 test("runDoctor passes when npm cli sentinel is translated", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const { claudeBin } = createFakeNpmClaudeLayout(home, [
     "#!/usr/bin/env node",
@@ -311,7 +312,7 @@ test("runDoctor passes when npm cli sentinel is translated", () => {
 });
 
 test("runDoctor counts current spinnerVerbs object shape", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   writeJson(path.join(pluginRoot, "manifest.json"), { name: "claude-code-zh-cn", version: "9.9.9" });
@@ -400,7 +401,7 @@ test("runDoctor classifies proxy and gateway chain signals separately", () => {
 });
 
 test("runDoctor warns when CC Switch common Claude config is missing zh-cn overlay", { skip: hasSqlite3() ? false : "requires sqlite3" }, () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-ccswitch-"));
+  const home = mkTmpDir("cczh-doctor-ccswitch-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   writeJson(path.join(pluginRoot, "manifest.json"), { name: "claude-code-zh-cn", version: "9.9.9" });
@@ -429,7 +430,7 @@ test("runDoctor warns when CC Switch common Claude config is missing zh-cn overl
 });
 
 test("runDoctor accepts complete CC Switch common Claude config", { skip: hasSqlite3() ? false : "requires sqlite3" }, () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-ccswitch-ok-"));
+  const home = mkTmpDir("cczh-doctor-ccswitch-ok-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   writeJson(path.join(pluginRoot, "manifest.json"), { name: "claude-code-zh-cn", version: "9.9.9" });
@@ -469,7 +470,7 @@ test("runDoctor accepts complete CC Switch common Claude config", { skip: hasSql
 });
 
 test("runDoctor warns when CC Switch Claude providers do not write common config", { skip: hasSqlite3() ? false : "requires sqlite3" }, () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-ccswitch-providers-"));
+  const home = mkTmpDir("cczh-doctor-ccswitch-providers-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   writeJson(path.join(pluginRoot, "manifest.json"), { name: "claude-code-zh-cn", version: "9.9.9" });
@@ -516,7 +517,7 @@ test("runDoctor warns when CC Switch Claude providers do not write common config
 });
 
 test("runDoctor does not treat macOS native support as Windows native support", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
 
@@ -551,7 +552,7 @@ test("runDoctor does not treat macOS native support as Windows native support", 
 });
 
 test("runDoctor explains Bun bytecode containers instead of a generic unsupported note", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-bytecode-"));
+  const home = mkTmpDir("cczh-doctor-bytecode-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
 
@@ -634,7 +635,7 @@ test("doctor maps Linux architectures and reads the Linux x64 support window", (
 });
 
 test("runDoctor reports supported Windows native as needing node-lief or patch", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
   const supportWindow = {
@@ -710,7 +711,7 @@ test("runDoctor reports supported Windows native as needing node-lief or patch",
 });
 
 test("runDoctor fails native runtime self-check when executable is killed", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-native-killed-"));
+  const home = mkTmpDir("cczh-doctor-native-killed-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
 
@@ -746,7 +747,7 @@ test("runDoctor fails native runtime self-check when executable is killed", () =
 });
 
 test("runDoctor reports provisional native marker without treating it as published support", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
 
@@ -789,7 +790,7 @@ test("runDoctor reports provisional native marker without treating it as publish
 });
 
 test("runDoctor requires native marker hash to match current binary", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-"));
+  const home = mkTmpDir("cczh-doctor-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const targetPath = path.join(home, "claude.exe");
 
@@ -858,7 +859,7 @@ test("doctor --json accepts GitHub source slugs and still warns for missing loca
 });
 
 test("doctor.sh --json surfaces env overrides", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doctor-cli-"));
+  const home = mkTmpDir("cczh-doctor-cli-");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
 
   writeJson(path.join(pluginRoot, "manifest.json"), { name: "claude-code-zh-cn", version: "1.0.0" });

@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -16,7 +17,7 @@ function lcovEntry(sf, lf, lh) {
 }
 
 function makeLcov(entries) {
-  const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "lcov-")), "cov.info");
+  const f = path.join(mkTmpDir("lcov-"), "cov.info");
   fs.writeFileSync(f, entries.map(([sf, lf, lh]) => lcovEntry(sf, lf, lh)).join(""));
   return f;
 }
@@ -113,7 +114,7 @@ test("coverage-gate: floor.exempt 到期后豁免自动失效", () => {
   const tmpThresholds = JSON.parse(JSON.stringify(THRESHOLDS));
   const exemptFile = Object.keys(tmpThresholds.floor.exempt)[0];
   tmpThresholds.floor.exempt[exemptFile].expires = "2020-01-01";
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "th-"));
+  const tmpDir = mkTmpDir("th-");
   // 脚本从自身所在目录读阈值，故把脚本+过期阈值复制到临时仓库结构再跑
   const tmpRepo = path.join(tmpDir, "repo");
   fs.mkdirSync(path.join(tmpRepo, "scripts"), { recursive: true });

@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -62,7 +63,7 @@ function createFixtureRepo({
   changelogVersion,
   tagVersion,
 }) {
-  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-release-state-repo-"));
+  const repo = mkTmpDir("cczh-release-state-repo-");
 
   writeRepoFiles(
     repo,

@@ -30,6 +30,7 @@ bash scripts/install-git-hooks.sh   # 安装 pre-push 钩子（推送前自动�
 | 文件大小上限（T1） | `node scripts/check-file-size.js` | CI + check-all | js/sh/ps1 文件超 2000 行 | 按职责拆分（见 ARCHITECTURE.md「依赖方向规则」） | `scripts/gate-exemptions.json` 登记（reason+expires，过期自动失效） |
 | 版本声明点对齐 | `node scripts/check-version-alignment.js` | CI + check-all | manifest.json / plugin.json / CHANGELOG 顶部版本不一致 | 按 CLAUDE.md 发布流程同步 3 处 | 无 |
 | 翻译数据源守护 | `node scripts/verify-settings-sources.js` | CI + check-all | `settings-overlay.json` 含 `spinnerVerbs`/`spinnerTipsOverride`，或 verbs/tips 结构非法 | 把数据移回 `verbs/zh-CN.json` / `tips/zh-CN.json`（core-beliefs #14 单一数据源） | 无 |
+| 临时目录无裸创建（TD-QA-008） | `node scripts/migrate-tmpdir.js --check` | CI + check-all | `tests/*.test.js` 出现裸 `fs.mkdtempSync(path.join(os.tmpdir(), ...))` | 改用 `mkTmpDir(prefix)`（`tests/helpers/tmpdir.js`，进程退出自动清理）；批量迁移：`node scripts/migrate-tmpdir.js` | 无 |
 | sh/ps1 成对变更（D3） | `node scripts/check-sh-ps1-pair.js --base <ref>` | CI：PR + check-all | 双端实现只改了一端 | 把同一逻辑同步到另一端 | commit message 含 `pair-exempt: <原因>` |
 | plugin 负载一致性 | `bash scripts/check-all.sh`（内嵌） | check-all（pre-push） | 根 6 文件与 plugin/ 副本不一致 | `bash scripts/sync-payload.sh` | 无 |
 | 结构约束（S1 安装脚本禁长 heredoc / S2 禁仓库外引用） | `node scripts/check-structure.js` | CI + check-all | 架构约束被违反（批次 3a 成果回退或 payload 不自包含） | 报错含逐条修复指引 | 无 |

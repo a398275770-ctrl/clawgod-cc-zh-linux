@@ -4,6 +4,7 @@
 // - 语法校验：patch 结果非法 JS 时拒绝写盘（原文可解析时）
 // - patch.log 错误可见性
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -15,7 +16,7 @@ const patchCli = path.join(repoRoot, "patch-cli.js");
 const translations = path.join(repoRoot, "cli-translations.json");
 
 function makeContext() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-degrade-"));
+  const dir = mkTmpDir("cczh-degrade-");
   return {
     dir,
     cliFile: path.join(dir, "cli.js"),

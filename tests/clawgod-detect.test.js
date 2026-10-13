@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -9,7 +10,7 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 const SCRIPT = path.join(REPO_ROOT, "scripts", "detect-clawgod.js");
 
 function makeLayout({ cliCjs = true, chunks = ["chunk-abc123.js"], sourceVersion = "2.1.296" } = {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawgod-detect-"));
+  const dir = mkTmpDir("clawgod-detect-");
   if (cliCjs) fs.writeFileSync(path.join(dir, "cli.cjs"), "#!/usr/bin/env bun\n");
   const bunfs = path.join(dir, "bunfs");
   fs.mkdirSync(bunfs, { recursive: true });
@@ -57,7 +58,7 @@ test("detect-clawgod: 无 chunk 不命中", () => {
 });
 
 test("detect-clawgod: bunfs 不是目录不命中", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawgod-detect-"));
+  const dir = mkTmpDir("clawgod-detect-");
   try {
     fs.writeFileSync(path.join(dir, "cli.cjs"), "x");
     fs.writeFileSync(path.join(dir, "bunfs"), "i am a file");

@@ -1,4 +1,5 @@
 const nodeTest = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -195,7 +196,7 @@ function nativeShellFixture(version, body = "NATIVE") {
 }
 
 test("session-start repairs settings from cached overlay before emitting JSON", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-repair-"));
+  const tmp = mkTmpDir("cczh-settings-repair-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -267,7 +268,7 @@ test("session-start repairs settings from cached overlay before emitting JSON", 
 });
 
 test("marketplace session-start keeps mutable state outside the versioned plugin cache", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-marketplace-state-"));
+  const tmp = mkTmpDir("cczh-marketplace-state-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "cache", "claude-code-zh-cn", "2.5.1");
   const pluginData = path.join(tmp, "data", "claude-code-zh-cn-claude-code-zh-cn");
@@ -336,7 +337,7 @@ test(
   "Windows session-start hook writes spinner tips to CLAUDE_CONFIG_DIR",
   { skip: process.platform !== "win32" ? "requires Windows PowerShell" : false },
   () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-config-dir-"));
+  const tmp = mkTmpDir("cczh-config-dir-");
   const pluginRoot = path.join(tmp, "plugin");
   const configDir = path.join(tmp, "config");
   const wrongHome = path.join(tmp, "wrong-home");
@@ -397,7 +398,7 @@ test(
 test("pure marketplace install (no cache) self-seeds spinner settings from bundled data", () => {
   // 纯 `claude plugin install` 安装：没有 install 脚本预生成 .settings-overlay-cache.json。
   // session-start hook 应从 plugin 内置的 verbs/tips/settings-overlay 现场补齐缺失的 spinner 配置。
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-marketplace-nocache-"));
+  const tmp = mkTmpDir("cczh-marketplace-nocache-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "cache", "claude-code-zh-cn", "2.6.1");
   const fakeBin = path.join(tmp, "bin");
@@ -457,7 +458,7 @@ test("pure marketplace install (no cache) self-seeds spinner settings from bundl
 
 test("self-seed migrates a legacy spinnerVerbs array without losing user values", () => {
   // 旧数组形态已不符合当前 schema；hook 只包装结构，不替换用户动词。
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-marketplace-preserve-"));
+  const tmp = mkTmpDir("cczh-marketplace-preserve-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "cache", "claude-code-zh-cn", "2.6.1");
   const fakeBin = path.join(tmp, "bin");
@@ -527,7 +528,7 @@ test("Unix session-start serializes native and npm patch transactions", () => {
 });
 
 test("concurrent Unix session-start hooks never patch the same native binary together", async () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-lock-"));
+  const tmp = mkTmpDir("cczh-native-lock-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "plugin");
   const nativeBinary = path.join(tmp, "claude");
@@ -609,7 +610,7 @@ printf 1
 });
 
 test("concurrent Unix session-start hooks invoke the npm patch transaction only once", async () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-npm-lock-"));
+  const tmp = mkTmpDir("cczh-npm-lock-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "plugin");
   const fakeClaude = path.join(tmp, "claude");
@@ -725,7 +726,7 @@ test("session-start bounds update checks and never runs a standalone installer m
 });
 
 test("marketplace session-start delegates plugin updates to Claude plugin manager", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-marketplace-update-"));
+  const tmp = mkTmpDir("cczh-marketplace-update-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "cache", "claude-code-zh-cn", "2.5.1");
   const pluginData = path.join(tmp, "data", "claude-code-zh-cn-claude-code-zh-cn");
@@ -772,7 +773,7 @@ printf '2.1.205 (Claude Code)\\n'
 });
 
 test("marketplace session-start times out a stuck plugin-manager update without blocking the session", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-marketplace-timeout-"));
+  const tmp = mkTmpDir("cczh-marketplace-timeout-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(tmp, "cache", "claude-code-zh-cn", "2.6.0");
   const pluginData = path.join(tmp, "data", "claude-code-zh-cn-claude-code-zh-cn");
@@ -818,7 +819,7 @@ printf '2.1.205 (Claude Code)\\n'
 });
 
 test("session-start re-patches when plugin changed even if Claude Code version is unchanged", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-"));
+  const tmp = mkTmpDir("cczh-hook-");
   const pluginRoot = path.join(tmp, "plugin");
   const fakeBin = path.join(tmp, "bin");
   const cliFile = path.join(tmp, "lib", "node_modules", "@anthropic-ai", "claude-code", "cli.js");
@@ -867,7 +868,7 @@ printf 'invoked' > ${JSON.stringify(invokedFile)}
 });
 
 test("session-start does not fall back to npm patching when helper reports unknown", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-unknown-"));
+  const tmp = mkTmpDir("cczh-hook-unknown-");
   const pluginRoot = path.join(tmp, "plugin");
   const fakeBin = path.join(tmp, "bin");
   const cliFile = path.join(tmp, "lib", "node_modules", "@anthropic-ai", "claude-code", "cli.js");
@@ -926,7 +927,7 @@ printf 'invoked' > ${JSON.stringify(invokedFile)}
 });
 
 test("session-start honors ZH_CN_REAL_CLAUDE when launcher is first on PATH", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-launcher-path-"));
+  const tmp = mkTmpDir("cczh-hook-launcher-path-");
   const pluginRoot = path.join(tmp, "plugin");
   const launcherBin = path.join(tmp, "launcher-bin");
   const realBin = path.join(tmp, "real-bin");
@@ -995,7 +996,7 @@ printf 'invoked' > ${JSON.stringify(invokedFile)}
 });
 
 test("standalone session-start announces the latest release without mutating the install or source checkout", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-autoupdate-"));
+  const tmp = mkTmpDir("cczh-autoupdate-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1061,7 +1062,7 @@ test("standalone session-start announces the latest release without mutating the
 });
 
 test("standalone release check never executes a broken untagged installer from the source worktree", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-autoupdate-legacy-helperless-"));
+  const tmp = mkTmpDir("cczh-autoupdate-legacy-helperless-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1127,7 +1128,7 @@ test("standalone release check never executes a broken untagged installer from t
 });
 
 test("session-start skips auto-update cleanly when source repo path is missing", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-autoupdate-missing-"));
+  const tmp = mkTmpDir("cczh-autoupdate-missing-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1167,7 +1168,7 @@ test("session-start skips auto-update cleanly when source repo path is missing",
 });
 
 test("session-start skips auto-update when source repo has no release tags", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-autoupdate-notags-"));
+  const tmp = mkTmpDir("cczh-autoupdate-notags-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1212,7 +1213,7 @@ test("session-start skips auto-update when source repo has no release tags", () 
 });
 
 test("session-start returns valid JSON even when update fails", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-update-fail-"));
+  const tmp = mkTmpDir("cczh-update-fail-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1256,7 +1257,7 @@ test("session-start returns valid JSON even when update fails", () => {
 });
 
 test("standalone session-start records an available release without claiming installation", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-update-status-"));
+  const tmp = mkTmpDir("cczh-update-status-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1303,7 +1304,7 @@ test("standalone session-start records an available release without claiming ins
 });
 
 test("session-start native re-patch does not roll upgraded supported binary back to old backup version", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-upgrade-"));
+  const tmp = mkTmpDir("cczh-native-upgrade-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1364,7 +1365,7 @@ printf '1'
 });
 
 test("session-start patches verified macOS native experimental version", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-verified-"));
+  const tmp = mkTmpDir("cczh-native-verified-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1413,7 +1414,7 @@ printf '1'
 });
 
 test("session-start patches verified Linux x64 without provisional fallback", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-linux-native-verified-"));
+  const tmp = mkTmpDir("cczh-linux-native-verified-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1464,7 +1465,7 @@ test("session-start patches verified Linux x64 without provisional fallback", ()
 });
 
 test("session-start restores native backup when repack fails after mutating binary", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-repack-fail-"));
+  const tmp = mkTmpDir("cczh-native-repack-fail-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1543,7 +1544,7 @@ printf '1'
 });
 
 test("session-start restores native backup when runtime self-check fails after repack", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-runtime-fail-"));
+  const tmp = mkTmpDir("cczh-native-runtime-fail-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1631,7 +1632,7 @@ printf '1'
 });
 
 test("session-start provisionally patches newer native versions and leaves unknown copy in English", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-latest-provisional-"));
+  const tmp = mkTmpDir("cczh-native-latest-provisional-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1692,7 +1693,7 @@ test("session-start provisionally patches newer native versions and leaves unkno
 });
 
 test("session-start provisionally patches a future native release and leaves unknown copy in English", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-future-line-"));
+  const tmp = mkTmpDir("cczh-native-future-line-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");
@@ -1743,7 +1744,7 @@ test("session-start provisionally patches a future native release and leaves unk
 });
 
 test("session-start native path skips re-patch cleanly when node-lief deps are missing", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-node-lief-missing-"));
+  const tmp = mkTmpDir("cczh-native-node-lief-missing-");
   const home = path.join(tmp, "home");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
   const fakeBin = path.join(tmp, "bin");

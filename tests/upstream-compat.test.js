@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -53,7 +54,7 @@ function runCompat(args = [], env = {}) {
 }
 
 function writePr10StyleTranslations() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-pr10-translations-"));
+  const dir = mkTmpDir("cczh-pr10-translations-");
   const target = path.join(dir, "cli-translations.json");
   const entries = JSON.parse(fs.readFileSync(translationsFile, "utf8"))
     .filter((entry) => !entry.en.includes("Ultrareview launched for"))
@@ -70,7 +71,7 @@ function writePr10StyleTranslations() {
 }
 
 function writeTranslationsWithout(englishFragment) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-missing-translation-"));
+  const dir = mkTmpDir("cczh-missing-translation-");
   const target = path.join(dir, "cli-translations.json");
   const entries = JSON.parse(fs.readFileSync(translationsFile, "utf8"))
     .filter((entry) => !entry.en.includes(englishFragment));
@@ -79,7 +80,7 @@ function writeTranslationsWithout(englishFragment) {
 }
 
 test("verify-upstream-compat rejects a shared package cache", { skip: process.platform === "win32" }, () => {
-  const packagesDir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-insecure-cache-"));
+  const packagesDir = mkTmpDir("cczh-insecure-cache-");
   fs.chmodSync(packagesDir, 0o777);
 
   const result = spawnCompat(
@@ -145,7 +146,7 @@ test("verify-upstream-compat shows partial coverage in human-readable output", (
 });
 
 test("verify-upstream-compat reports a visible template residue as partial coverage", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-template-residue-"));
+  const tmp = mkTmpDir("cczh-template-residue-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "1.0.1-template-residue", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -329,7 +330,7 @@ test("verify-upstream-compat reports missing node-lief as native dependency skip
 });
 
 test("verify-upstream-compat patches and audits the Linux platform package", { skip: posixOnly }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-linux-native-"));
+  const tmp = mkTmpDir("cczh-linux-native-");
   const packagesDir = path.join(tmp, "cache");
   fs.mkdirSync(packagesDir, { recursive: true, mode: 0o700 });
   const packageDir = path.join(
@@ -433,7 +434,7 @@ test("verify-upstream-compat patches and audits the Linux platform package", { s
 });
 
 test("verify-upstream-compat resolves new native macOS candidates to the platform package", { skip: posixOnly }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-package-resolve-"));
+  const tmp = mkTmpDir("cczh-native-package-resolve-");
   const packagesDir = path.join(tmp, "cache");
   fs.mkdirSync(packagesDir, { recursive: true, mode: 0o700 });
   const requestsPath = path.join(tmp, "npm-requests.txt");
@@ -529,7 +530,7 @@ test("verify-upstream-compat resolves new native macOS candidates to the platfor
 });
 
 test("verify-upstream-compat uses Windows native representatives as the default native baseline", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-windows-native-baseline-"));
+  const tmp = mkTmpDir("cczh-windows-native-baseline-");
   const configPath = path.join(tmp, "config.json");
   const fixtureConfigJson = JSON.parse(fs.readFileSync(fixtureConfig, "utf8"));
   fixtureConfigJson.baseline = {
@@ -580,7 +581,7 @@ test("verify-upstream-compat uses Windows native representatives as the default 
 });
 
 test("verify-upstream-compat accepts root-level Windows platform claude.exe packages", { skip: posixOnly }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-windows-root-exe-"));
+  const tmp = mkTmpDir("cczh-windows-root-exe-");
   const packagesDir = path.join(tmp, "cache");
   fs.mkdirSync(packagesDir, { recursive: true, mode: 0o700 });
   const requestsPath = path.join(tmp, "npm-requests.txt");
@@ -666,7 +667,7 @@ test("verify-upstream-compat accepts root-level Windows platform claude.exe pack
 });
 
 test("verify-upstream-compat verifies Windows native-wrapper packages", { skip: posixOnly }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-windows-wrapper-exe-"));
+  const tmp = mkTmpDir("cczh-windows-wrapper-exe-");
   const packagesDir = path.join(tmp, "cache");
   fs.mkdirSync(packagesDir, { recursive: true, mode: 0o700 });
   const requestsPath = path.join(tmp, "npm-requests.txt");
@@ -754,7 +755,7 @@ test("verify-upstream-compat verifies Windows native-wrapper packages", { skip: 
 });
 
 test("verify-upstream-compat keeps runtime green and reports partial coverage for user-visible English", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-display-audit-config-"));
+  const tmp = mkTmpDir("cczh-display-audit-config-");
   const configPath = path.join(tmp, "config.json");
   const fixtureConfigJson = JSON.parse(fs.readFileSync(fixtureConfig, "utf8"));
   fixtureConfigJson.baseline = {
@@ -818,7 +819,7 @@ test("verify-upstream-compat keeps runtime green and reports partial coverage fo
 });
 
 test("verify-upstream-compat hard-fails when syntax prevents a required help command from running", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-display-command-failure-"));
+  const tmp = mkTmpDir("cczh-display-command-failure-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "1.0.4-help-failure", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -851,7 +852,7 @@ test("verify-upstream-compat hard-fails when syntax prevents a required help com
 });
 
 test("verify-upstream-compat hard-fails when a must-preserve display term disappears", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-display-preserve-failure-"));
+  const tmp = mkTmpDir("cczh-display-preserve-failure-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "1.0.4-preserve-failure", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -885,7 +886,7 @@ test("verify-upstream-compat hard-fails when a must-preserve display term disapp
 });
 
 test("verify-upstream-compat fails when display audit silently skips expected surfaces", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-display-count-config-"));
+  const tmp = mkTmpDir("cczh-display-count-config-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "1.0.4-display-count", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -1031,7 +1032,7 @@ test("production upstream compat config guards issue #80 visible native residues
 });
 
 test("verify-upstream-compat reports unpatched issue #70 native UI source residues as partial coverage", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-ui-guard-config-"));
+  const tmp = mkTmpDir("cczh-native-ui-guard-config-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "9.9.70-native-ui", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -1083,7 +1084,7 @@ test("verify-upstream-compat reports unpatched issue #70 native UI source residu
 });
 
 test("compact duration guards do not flag unrelated protocol duration abbreviations", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-compact-duration-scope-"));
+  const tmp = mkTmpDir("cczh-compact-duration-scope-");
   const fixtures = path.join(tmp, "packages");
   const packageDir = path.join(fixtures, "9.9.71-duration-scope", "package");
   fs.mkdirSync(packageDir, { recursive: true });
@@ -1124,7 +1125,7 @@ test("compact duration guards do not flag unrelated protocol duration abbreviati
 });
 
 test("verify-upstream-compat refreshes a corrupt downloaded package cache", { skip: posixOnly }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-corrupt-cache-"));
+  const tmp = mkTmpDir("cczh-corrupt-cache-");
   const packagesDir = path.join(tmp, "cache");
   fs.mkdirSync(packagesDir, { recursive: true, mode: 0o700 });
   const packageName = "@anthropic-ai/claude-code";

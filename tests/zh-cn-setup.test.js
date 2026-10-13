@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -17,7 +18,7 @@ const {
 } = require(setupScript);
 
 function makeTmpHome() {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-setup-"));
+  const tmp = mkTmpDir("cczh-setup-");
   const home = path.join(tmp, "home");
   fs.mkdirSync(path.join(home, ".claude"), { recursive: true });
   return { tmp, home };

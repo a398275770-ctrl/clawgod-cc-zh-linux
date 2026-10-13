@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -11,7 +12,7 @@ const MERGE_SCRIPT = path.join(REPO_ROOT, "scripts", "ccswitch-build-merged-conf
 const PROVIDER_SCRIPT = path.join(REPO_ROOT, "scripts", "ccswitch-build-provider-meta-updates.js");
 
 function tmpdir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "ccsw-"));
+  return mkTmpDir("ccsw-");
 }
 
 function writeJson(dir, name, value) {

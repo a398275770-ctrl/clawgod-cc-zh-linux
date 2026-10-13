@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -42,7 +43,7 @@ test("upstream text diff can emit machine-readable added and removed strings", (
 });
 
 test("upstream text diff accepts Windows native mode when resolving the previous verified version", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-text-diff-windows-native-test-"));
+  const tmp = mkTmpDir("cczh-text-diff-windows-native-test-");
   const configPath = path.join(tmp, "config.json");
   const fixtureConfigJson = JSON.parse(fs.readFileSync(fixtureConfig, "utf8"));
   fixtureConfigJson.support = {
@@ -83,7 +84,7 @@ test("upstream text diff accepts Windows native mode when resolving the previous
 });
 
 test("upstream text diff filters build metadata and embedded code fragments", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-text-diff-test-"));
+  const tmp = mkTmpDir("cczh-text-diff-test-");
   const packagesDir = path.join(tmp, "packages");
   const configPath = path.join(tmp, "config.json");
   const fromPackage = path.join(packagesDir, "1.0.0", "package");
@@ -121,7 +122,7 @@ test("upstream text diff filters build metadata and embedded code fragments", ()
 });
 
 test("upstream text diff reports user-visible interpolated template literals", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-text-diff-template-test-"));
+  const tmp = mkTmpDir("cczh-text-diff-template-test-");
   const packagesDir = path.join(tmp, "packages");
   const configPath = path.join(tmp, "config.json");
   const fromPackage = path.join(packagesDir, "1.0.0", "package");
@@ -155,7 +156,7 @@ test("upstream text diff reports user-visible interpolated template literals", (
 });
 
 test("upstream text diff keeps trailing text after nested template literals", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-text-diff-nested-template-test-"));
+  const tmp = mkTmpDir("cczh-text-diff-nested-template-test-");
   const packagesDir = path.join(tmp, "packages");
   const configPath = path.join(tmp, "config.json");
   const fromPackage = path.join(packagesDir, "1.0.0", "package");

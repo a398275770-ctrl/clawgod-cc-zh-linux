@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -20,7 +21,7 @@ const sample = TRANSLATIONS.find(
 );
 
 function makeClawgodFixture() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawgod-patch-"));
+  const dir = mkTmpDir("clawgod-patch-");
   fs.writeFileSync(path.join(dir, "cli.cjs"), "#!/usr/bin/env bun\n");
   fs.writeFileSync(path.join(dir, ".source-version"), "2.1.296\n");
   const bunfs = path.join(dir, "bunfs");

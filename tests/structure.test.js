@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync, execFileSync } = require("child_process");
 const fs = require("fs");
@@ -13,7 +14,7 @@ function git(dir, ...args) {
 }
 
 function makeRepo(files) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "struct-"));
+  const dir = mkTmpDir("struct-");
   git(dir, "init", "-q");
   for (const [name, content] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });

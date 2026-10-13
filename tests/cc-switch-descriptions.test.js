@@ -1,5 +1,6 @@
 "use strict";
 const { test } = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -7,7 +8,7 @@ const os = require("node:os");
 const cc = require("../plugin/skills/zh-cn-setup/scripts/cc-switch-descriptions.js");
 
 function tmpdir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "cczh-ccsd-"));
+  return mkTmpDir("cczh-ccsd-");
 }
 
 function writeMd(dir, name, description) {

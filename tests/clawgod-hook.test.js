@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
@@ -30,7 +31,7 @@ function copyTree(src, dst) {
 }
 
 function createContext(t) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-clawgod-hook-"));
+  const tmp = mkTmpDir("cczh-clawgod-hook-");
   t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
   const home = path.join(tmp, "home");
   const clawgodDir = path.join(tmp, "clawgod");

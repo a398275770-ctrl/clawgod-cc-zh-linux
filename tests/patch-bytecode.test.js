@@ -326,7 +326,6 @@ test("pool-only UI fragments translate without entering the plaintext table", ()
   }
 });
 
-
 // 2.1.260 用户反馈的六类缺口：Waiting for task 前缀、chord 附加指示、后台
 // agent 启动/完成、Goal 状态词、Task Output 工具名。全部只作池内展示片段，
 // 写进 cli-translations.json 会让明文路径在协议模板或提示词里误替换，故走
@@ -359,7 +358,6 @@ test("2.1.260 reported gaps: pool-only UI fragments translate within slot width"
     assert.equal(pool.subarray(8, 8 + rep.length).toString("utf16le"), zh);
   }
 });
-
 
 // "译文存在但静默 tooLong 不生效" 再次出现。槽宽来自 2.1.260 实测。
 test("newly added pool UI phrases fit their real pool slot widths", () => {

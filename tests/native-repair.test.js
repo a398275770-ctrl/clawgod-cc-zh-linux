@@ -1,4 +1,5 @@
 const test = require('node:test');
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -7,7 +8,7 @@ const { spawnSync } = require('node:child_process');
 const repo = path.resolve(__dirname, '..');
 const unix = process.platform === 'win32' ? '真实 Windows exe 由 native CI 验证' : false;
 function fixture(t) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cczh-prelaunch-test-'));
+  const tmp = mkTmpDir('cczh-prelaunch-test-');
   t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
   const root = path.join(tmp, 'plugin'), target = path.join(tmp, 'claude'), state = path.join(tmp, 'state');
   fs.cpSync(path.join(repo, 'plugin'), root, { recursive: true });
@@ -108,7 +109,7 @@ test('a dead repair owner is reclaimed and does not require reinstalling', { ski
   assert.match(fs.readFileSync(f.target, 'utf8'), /中文帮助/);
 });
 test('standalone installation does not select an unconfirmed old marketplace payload', t => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cczh-resolver-'));
+  const tmp = mkTmpDir('cczh-resolver-');
   t.after(() => fs.rmSync(tmp, {recursive:true,force:true}));
   const legacy = path.join(tmp,'plugins/claude-code-zh-cn');
   fs.mkdirSync(legacy,{recursive:true});

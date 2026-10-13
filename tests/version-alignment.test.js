@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -9,7 +10,7 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 const SCRIPT = path.join(REPO_ROOT, "scripts", "check-version-alignment.js");
 
 function makeFixture(versions) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ver-align-"));
+  const dir = mkTmpDir("ver-align-");
   fs.mkdirSync(path.join(dir, "plugin", ".claude-plugin"), { recursive: true });
   fs.writeFileSync(path.join(dir, "plugin", "manifest.json"), JSON.stringify({ version: versions[0] }));
   fs.writeFileSync(path.join(dir, "plugin", ".claude-plugin", "plugin.json"), JSON.stringify({ version: versions[1] }));
@@ -39,7 +40,7 @@ test("version-alignment: 漂移时必须失败且报错含修复指引", () => {
 });
 
 test("version-alignment: 缺失声明点时必须失败", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ver-align-"));
+  const dir = mkTmpDir("ver-align-");
   try {
     const r = run(dir);
     assert.notStrictEqual(r.status, 0);

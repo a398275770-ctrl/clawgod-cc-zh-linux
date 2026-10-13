@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync, execFileSync } = require("child_process");
 const fs = require("fs");
@@ -13,7 +14,7 @@ function git(dir, ...args) {
 }
 
 function makeRepo() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pair-"));
+  const dir = mkTmpDir("pair-");
   git(dir, "init", "-q", "-b", "main");
   fs.writeFileSync(path.join(dir, "install.sh"), "v1\n");
   fs.writeFileSync(path.join(dir, "install.ps1"), "v1\n");

@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -9,7 +10,7 @@ const modulePath = path.join(repoRoot, "plugin", "scripts", "build-overlay.js");
 const { buildOverlay, fillMissingKeys, writeSettings, PLUGIN_KEYS } = require(modulePath);
 
 function makeTmpPluginRoot({ verbs, tips, base }) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-overlay-"));
+  const root = mkTmpDir("cczh-overlay-");
   if (base) {
     fs.writeFileSync(path.join(root, "settings-overlay.json"), JSON.stringify(base) + "\n");
   }
@@ -60,7 +61,7 @@ test("buildOverlay handles legacy verbs-as-array shape", () => {
 });
 
 test("buildOverlay falls back to defaults when base overlay is missing", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-overlay-nobase-"));
+  const root = mkTmpDir("cczh-overlay-nobase-");
   fs.mkdirSync(path.join(root, "verbs"), { recursive: true });
   fs.writeFileSync(path.join(root, "verbs", "zh-CN.json"), JSON.stringify({ verbs: ["思考中"] }) + "\n");
   fs.mkdirSync(path.join(root, "tips"), { recursive: true });
@@ -86,7 +87,7 @@ test("buildOverlay against the real repo plugin payload matches expected counts"
 });
 
 test("fillMissingKeys seeds only absent keys and preserves everything else", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-fill-"));
+  const dir = mkTmpDir("cczh-settings-fill-");
   const settingsFile = path.join(dir, "settings.json");
   fs.writeFileSync(settingsFile, JSON.stringify({ theme: "dark", editor: "vim" }) + "\n");
 
@@ -108,7 +109,7 @@ test("fillMissingKeys seeds only absent keys and preserves everything else", () 
 });
 
 test("fillMissingKeys never overwrites existing spinner config", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-preserve-"));
+  const dir = mkTmpDir("cczh-settings-preserve-");
   const settingsFile = path.join(dir, "settings.json");
   const userVerbs = { mode: "append", verbs: ["我的自定义动词"] };
   fs.writeFileSync(
@@ -133,7 +134,7 @@ test("fillMissingKeys never overwrites existing spinner config", () => {
 });
 
 test("fillMissingKeys migrates legacy spinnerVerbs arrays without losing custom verbs", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-migrate-verbs-"));
+  const dir = mkTmpDir("cczh-settings-migrate-verbs-");
   const settingsFile = path.join(dir, "settings.json");
   fs.writeFileSync(settingsFile, JSON.stringify({ spinnerVerbs: ["我的自定义动词"] }) + "\n");
 
@@ -149,7 +150,7 @@ test("fillMissingKeys migrates legacy spinnerVerbs arrays without losing custom 
 });
 
 test("fillMissingKeys reports no change when all plugin keys already present", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-complete-"));
+  const dir = mkTmpDir("cczh-settings-complete-");
   const settingsFile = path.join(dir, "settings.json");
   fs.writeFileSync(
     settingsFile,
@@ -176,7 +177,7 @@ test("fillMissingKeys reports no change when all plugin keys already present", (
 });
 
 test("writeSettings writes atomically and produces valid JSON", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-settings-write-"));
+  const dir = mkTmpDir("cczh-settings-write-");
   const settingsFile = path.join(dir, "settings.json");
   writeSettings(settingsFile, { language: "Chinese", spinnerTipsEnabled: true });
   const written = JSON.parse(fs.readFileSync(settingsFile, "utf8"));

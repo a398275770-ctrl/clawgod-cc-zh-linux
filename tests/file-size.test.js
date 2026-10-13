@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert");
 const { spawnSync, execFileSync } = require("child_process");
 const fs = require("fs");
@@ -13,7 +14,7 @@ function git(dir, ...args) {
 }
 
 function makeRepo(files) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filesize-"));
+  const dir = mkTmpDir("filesize-");
   git(dir, "init", "-q");
   fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
   fs.writeFileSync(path.join(dir, "scripts", "gate-exemptions.json"), JSON.stringify({ exemptions: [] }));

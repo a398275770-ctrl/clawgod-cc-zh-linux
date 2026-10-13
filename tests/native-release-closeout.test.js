@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -15,7 +16,7 @@ function fixtureRepo({
   officialManifestVersion = manifestVersion,
   changelogVersion = "2.4.14",
 } = {}) {
-  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-release-closeout-"));
+  const repo = mkTmpDir("cczh-native-release-closeout-");
   fs.mkdirSync(path.join(repo, "plugin", ".claude-plugin"), { recursive: true });
   fs.writeFileSync(
     path.join(repo, "plugin", "manifest.json"),

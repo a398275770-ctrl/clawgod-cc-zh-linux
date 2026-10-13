@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -209,7 +210,7 @@ test("install smoke supports verified Linux x64 and locally validates new versio
   ];
 
   for (const item of cases) {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-linux-native-"));
+    const tmp = mkTmpDir("cczh-install-linux-native-");
     const home = path.join(tmp, "home");
     const fakeBin = path.join(tmp, "bin");
     const fakeClaude = path.join(fakeBin, "claude");
@@ -261,7 +262,7 @@ test("install smoke supports verified Linux x64 and locally validates new versio
 });
 
 test("install smoke provisionally self-verifies a future native release instead of hard-skipping it", { skip: unixShellRequired }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-native-unsupported-"));
+  const tmp = mkTmpDir("cczh-install-native-unsupported-");
   const home = path.join(tmp, "home");
   const fakeBin = path.join(tmp, "bin");
   const fakeClaude = path.join(fakeBin, "claude");
@@ -305,7 +306,7 @@ test("install smoke provisionally self-verifies a future native release instead 
 });
 
 test("install smoke can provisionally self-verify newer same-minor native binaries", { skip: unixShellRequired }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-native-provisional-"));
+  const tmp = mkTmpDir("cczh-install-native-provisional-");
   const home = path.join(tmp, "home");
   const fakeBin = path.join(tmp, "bin");
   const fakeClaude = path.join(fakeBin, "claude");
@@ -356,7 +357,7 @@ test("install smoke can provisionally self-verify newer same-minor native binari
 });
 
 test("install smoke restores native backup when runtime self-check fails", { skip: unixShellRequired }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-native-runtime-fail-"));
+  const tmp = mkTmpDir("cczh-install-native-runtime-fail-");
   const home = path.join(tmp, "home");
   const fakeBin = path.join(tmp, "bin");
   const fakeClaude = path.join(fakeBin, "claude");
@@ -397,7 +398,7 @@ test("install smoke restores native backup when runtime self-check fails", { ski
 });
 
 test("install smoke provisionally self-verifies excluded in-window native binaries", { skip: unixShellRequired }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-native-excluded-"));
+  const tmp = mkTmpDir("cczh-install-native-excluded-");
   const home = path.join(tmp, "home");
   const fakeBin = path.join(tmp, "bin");
   const fakeClaude = path.join(fakeBin, "claude");
@@ -499,7 +500,7 @@ test("Windows installer delegates native patch to the shared transaction", () =>
 test("Windows write guard waits for transient sharing but rejects a held lock", { skip: windowsPowerShellRequired }, () => {
   const powershell = locateWindowsPowerShell();
   assert.ok(powershell);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-write-lock-"));
+  const tmp = mkTmpDir("cczh-write-lock-");
   const script = fs.readFileSync(path.join(repoRoot, "install.ps1"), "utf8");
   const guard = script.match(/function test-binary-writable \{[\s\S]*?\n\}/)[0];
   const check = path.join(tmp, "check.ps1");
@@ -541,7 +542,7 @@ for (const operation of ["replace", "remove"]) {
 test(`Windows binary ${operation} waits for release and preserves a persistently locked target`, { skip: windowsPowerShellRequired }, () => {
   const powershell = locateWindowsPowerShell();
   assert.ok(powershell);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-replace-lock-"));
+  const tmp = mkTmpDir("cczh-replace-lock-");
   const check = path.join(tmp, "check.ps1");
   const replacement = path.join(tmp, "replace.cjs");
   fs.writeFileSync(replacement, `
@@ -616,7 +617,7 @@ test(
     const beforeUserPath = readUserPath(powershell);
 
     for (const version of stableNpmVersions) {
-      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `cczh-install-ps-old-npm-${version}-`));
+      const tmp = mkTmpDir(`cczh-install-ps-old-npm-${version}-`);
       const { cliFile, fakeClaude } = createWindowsNpmInstall(tmp, version);
       const home = path.join(tmp, "home");
       const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn");
@@ -657,7 +658,7 @@ test(
     assert.ok(powershell, "Windows PowerShell is required for this smoke");
 
     const beforeUserPath = readUserPath(powershell);
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-install-ps-native-"));
+    const tmp = mkTmpDir("cczh-install-ps-native-");
     const fakeClaude = path.join(tmp, "native", "claude.exe");
     const pluginRoot = path.join(tmp, "home", ".claude", "plugins", "claude-code-zh-cn");
     const launcherBin = path.join(tmp, "home", ".claude", "bin");

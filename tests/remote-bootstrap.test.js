@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -12,7 +13,7 @@ const unixOnly = process.platform === 'win32' ? 'requires a POSIX shell environm
 const fakeCommit = '0123456789abcdef0123456789abcdef01234567';
 
 function tempDir(name) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `cczh-${name}-`));
+  return mkTmpDir(`cczh-${name}-`);
 }
 
 function writeFile(file, content, mode) {

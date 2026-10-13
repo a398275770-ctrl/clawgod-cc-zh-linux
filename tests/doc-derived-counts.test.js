@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -16,7 +17,7 @@ function runSync(args) {
 }
 
 function copyDocFixtures() {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-doc-counts-"));
+  const tmpDir = mkTmpDir("cczh-doc-counts-");
   const files = ["README.md", "AGENTS.md", "CLAUDE.md"].map((name) => {
     const target = path.join(tmpDir, name);
     fs.copyFileSync(path.join(repoRoot, name), target);

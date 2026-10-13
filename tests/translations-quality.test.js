@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -553,7 +554,7 @@ test("translations use Chinese marketplace wording while preserving commands and
 });
 
 test("check-translation-sentinels reports matching probes with explicit reasons", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-sentinel-hit-"));
+  const tmp = mkTmpDir("cczh-sentinel-hit-");
   const target = path.join(tmp, "cli.js");
   fs.writeFileSync(target, 'let a="Quick safety check"; let b="ctrl+e to explain";\n');
 
@@ -569,7 +570,7 @@ test("check-translation-sentinels reports matching probes with explicit reasons"
 });
 
 test("check-translation-sentinels passes when configured probes are absent", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-sentinel-clean-"));
+  const tmp = mkTmpDir("cczh-sentinel-clean-");
   const target = path.join(tmp, "cli.js");
   fs.writeFileSync(
     target,

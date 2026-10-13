@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -6,7 +7,7 @@ const path = require("node:path");
 const cache = require("../plugin/skill-i18n/lib/cache");
 
 function tmpCacheFile() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "skill-cache-"));
+  const dir = mkTmpDir("skill-cache-");
   return path.join(dir, "translations.json");
 }
 
@@ -21,7 +22,7 @@ test("load: 不存在的文件 → 空缓存", () => {
 });
 
 test("load: 损坏 JSON → 空缓存（不抛，不阻断流程）", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "skill-cache-"));
+  const dir = mkTmpDir("skill-cache-");
   const f = path.join(dir, "translations.json");
   fs.writeFileSync(f, "{not valid json");
   assert.deepEqual(cache.load(f), { version: 1, entries: {} });

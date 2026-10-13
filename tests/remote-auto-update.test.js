@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -12,7 +13,7 @@ const unixOnly = process.platform === 'win32' ? 'requires a POSIX shell environm
 const sessionStart = path.join(repoRoot, 'plugin', 'hooks', 'session-start');
 
 function tempDir(name) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `cczh-auto-update-${name}-`));
+  return mkTmpDir(`cczh-auto-update-${name}-`);
 }
 
 function writeFile(file, content, mode) {

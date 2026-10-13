@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -64,7 +65,7 @@ printf 'real claude ok\\n'
 }
 
 function createLauncherContext() {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-launcher-"));
+  const tmp = mkTmpDir("cczh-launcher-");
   const home = path.join(tmp, "home");
   const shellBin = path.join(tmp, "cmd-bin");
   const profileFile = path.join(home, ".zshrc");
@@ -106,7 +107,7 @@ function createLauncherContext() {
 }
 
 function createUnsupportedWrapperContext({ withGlobalNpmFallback = false } = {}) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-unsupported-wrapper-"));
+  const tmp = mkTmpDir("cczh-unsupported-wrapper-");
   const home = path.join(tmp, "home");
   const shellBin = path.join(tmp, "cmd-bin");
   const realBin = path.join(tmp, "third-party-bin");

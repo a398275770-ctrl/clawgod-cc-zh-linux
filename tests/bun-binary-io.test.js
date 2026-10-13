@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -228,7 +229,7 @@ function runHelperWithStatus(args, extraEnv = {}) {
 }
 
 test("detect treats Mach-O binaries with Bun trailer outside EOF as native-bun", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-detect-"));
+  const tmp = mkTmpDir("cczh-bun-detect-");
   const realBinary = path.join(tmp, "claude-real");
   const symlinkPath = path.join(tmp, "claude");
   const isolatedHome = path.join(tmp, "home");
@@ -249,7 +250,7 @@ test("detect treats Mach-O binaries with Bun trailer outside EOF as native-bun",
 });
 
 test("detect treats PE binaries with Bun trailer as native-bun", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-detect-pe-"));
+  const tmp = mkTmpDir("cczh-bun-detect-pe-");
   const pePath = path.join(tmp, "claude.exe");
 
   createFakePeBinary(pePath);
@@ -263,7 +264,7 @@ test("detect treats PE binaries with Bun trailer as native-bun", () => {
 });
 
 test("version falls back to package.json for npm-installed Windows native exe", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-version-package-"));
+  const tmp = mkTmpDir("cczh-bun-version-package-");
   const packageRoot = path.join(tmp, "node_modules", "@anthropic-ai", "claude-code");
   const pePath = path.join(packageRoot, "bin", "claude.exe");
 
@@ -283,7 +284,7 @@ test("version falls back to package.json for npm-installed Windows native exe", 
 });
 
 test("detect returns npm cli.js path for npm-style installation layout", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-detect-npm-"));
+  const tmp = mkTmpDir("cczh-bun-detect-npm-");
   const binDir = path.join(tmp, "prefix", "bin");
   const binPath = path.join(binDir, "claude");
   const cliPath = path.join(tmp, "prefix", "lib", "node_modules", "@anthropic-ai", "claude-code", "cli.js");
@@ -303,7 +304,7 @@ test("detect returns npm cli.js path for npm-style installation layout", () => {
 });
 
 test("detect returns unknown for plain files that are neither Bun binaries nor npm installs", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-detect-unknown-"));
+  const tmp = mkTmpDir("cczh-bun-detect-unknown-");
   const plainFile = path.join(tmp, "claude");
   fs.writeFileSync(plainFile, "#!/usr/bin/env bash\necho hi\n");
   fs.chmodSync(plainFile, 0o755);
@@ -317,7 +318,7 @@ test("detect returns unknown for plain files that are neither Bun binaries nor n
 });
 
 test("detect treats ELF binaries with Bun trailer as native-bun", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-detect-elf-"));
+  const tmp = mkTmpDir("cczh-bun-detect-elf-");
   const elfPath = path.join(tmp, "claude-elf");
   createFakeElfBinary(elfPath);
 
@@ -330,7 +331,7 @@ test("detect treats ELF binaries with Bun trailer as native-bun", () => {
 });
 
 test("resolve returns the real path for symlinks", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-resolve-"));
+  const tmp = mkTmpDir("cczh-bun-resolve-");
   const realFile = path.join(tmp, "real");
   const symlinkPath = path.join(tmp, "link");
 
@@ -365,7 +366,7 @@ test("helper has a format-dispatched PE extraction and repack path", () => {
 });
 
 test("extract, version, and repack can run through a PE node-lief adapter", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-pe-repack-"));
+  const tmp = mkTmpDir("cczh-bun-pe-repack-");
   const binaryPath = path.join(tmp, "claude.exe");
   const extractedPath = path.join(tmp, "extracted.js");
   const replacementPath = path.join(tmp, "replacement.js");
@@ -400,7 +401,7 @@ test("extract, version, and repack can run through a PE node-lief adapter", () =
 });
 
 test("extract recognizes the renamed /cli entry module used by Claude Code 2.1.227+", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-cli-module-"));
+  const tmp = mkTmpDir("cczh-bun-cli-module-");
   const binaryPath = path.join(tmp, "claude.exe");
   const extractedPath = path.join(tmp, "extracted.js");
   const fakeModuleRoot = path.join(tmp, "fake-node-path");
@@ -426,7 +427,7 @@ test("extract recognizes the renamed /cli entry module used by Claude Code 2.1.2
 });
 
 test("extract refuses to follow an output symlink", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-extract-symlink-"));
+  const tmp = mkTmpDir("cczh-bun-extract-symlink-");
   const binaryPath = path.join(tmp, "claude.exe");
   const targetPath = path.join(tmp, "target.js");
   const outputPath = path.join(tmp, "output.js");
@@ -451,7 +452,7 @@ test("extract refuses to follow an output symlink", () => {
 });
 
 test("extract, version, and repack can run through an ELF node-lief adapter", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-elf-repack-"));
+  const tmp = mkTmpDir("cczh-bun-elf-repack-");
   const binaryPath = path.join(tmp, "claude");
   const extractedPath = path.join(tmp, "extracted.js");
   const replacementPath = path.join(tmp, "replacement.js");
@@ -485,7 +486,7 @@ test("extract, version, and repack can run through an ELF node-lief adapter", ()
 });
 
 test("repack marks rewritten Claude source as UTF-8 module content", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-utf8-repack-"));
+  const tmp = mkTmpDir("cczh-bun-utf8-repack-");
   const binaryPath = path.join(tmp, "claude.exe");
   const replacementPath = path.join(tmp, "replacement.js");
   const fakeModuleRoot = path.join(tmp, "fake-node-path");
@@ -512,7 +513,7 @@ test("repack marks rewritten Claude source as UTF-8 module content", () => {
 });
 
 test("hash returns sha256 for binary marker identity", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-hash-"));
+  const tmp = mkTmpDir("cczh-bun-hash-");
   const file = path.join(tmp, "claude");
   fs.writeFileSync(file, "native-binary-content\n");
 
@@ -531,7 +532,7 @@ function createPeBinaryFromSection(binaryPath, sectionData) {
 }
 
 test("probe reports source-js for classic JS-source containers", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-probe-source-"));
+  const tmp = mkTmpDir("cczh-bun-probe-source-");
   const binaryPath = path.join(tmp, "claude.exe");
   const fakeModuleRoot = path.join(tmp, "fake-node-path");
 
@@ -551,7 +552,7 @@ test("probe reports source-js for classic JS-source containers", () => {
 });
 
 test("bytecode stub containers are refused by extract/repack instead of corrupting the binary", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-bytecode-"));
+  const tmp = mkTmpDir("cczh-bun-bytecode-");
   const binaryPath = path.join(tmp, "claude.exe");
   const extractedPath = path.join(tmp, "extracted.js");
   const replacementPath = path.join(tmp, "replacement.js");
@@ -586,7 +587,7 @@ test("bytecode stub containers are refused by extract/repack instead of corrupti
 });
 
 test("full-size bundles with the standard @bun banner stay patchable even with bytecode blobs", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-bun-banner-big-"));
+  const tmp = mkTmpDir("cczh-bun-banner-big-");
   const binaryPath = path.join(tmp, "claude.exe");
   const extractedPath = path.join(tmp, "extracted.js");
   const fakeModuleRoot = path.join(tmp, "fake-node-path");

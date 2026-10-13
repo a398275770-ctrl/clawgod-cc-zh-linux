@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -144,7 +145,7 @@ else process.exit(1);
 }
 
 function createInstallContext(mode) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-plugin-registration-"));
+  const tmp = mkTmpDir("cczh-plugin-registration-");
   const home = path.join(tmp, "home");
   const settingsFile = path.join(home, ".claude", "settings.json");
   const pluginRoot = path.join(home, ".claude", "plugins", "claude-code-zh-cn-standalone");

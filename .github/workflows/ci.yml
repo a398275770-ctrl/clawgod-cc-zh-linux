@@ -46,6 +46,12 @@ jobs:
       - name: Version alignment
         run: node scripts/check-version-alignment.js
 
+      - name: Settings data source guard
+        run: node scripts/verify-settings-sources.js
+
+      - name: No bare mkdtempSync in tests (TD-QA-008)
+        run: node scripts/migrate-tmpdir.js --check
+
       - name: Structure checks (S1/S2)
         run: node scripts/check-structure.js
 

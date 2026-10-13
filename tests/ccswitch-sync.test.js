@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -63,7 +64,7 @@ function createCcSwitchDb(home, commonConfig) {
 }
 
 function createContext(t, commonConfig) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-ccswitch-"));
+  const tmp = mkTmpDir("cczh-ccswitch-");
   t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
   const home = path.join(tmp, "home");
   fs.mkdirSync(path.join(home, ".claude"), { recursive: true });

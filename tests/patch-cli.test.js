@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -10,7 +11,7 @@ const patchCli = path.join(repoRoot, "patch-cli.js");
 const translations = path.join(repoRoot, "cli-translations.json");
 
 function patchFixture(lines) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-patch-"));
+  const dir = mkTmpDir("cczh-patch-");
   const cliFile = path.join(dir, "cli.js");
   fs.writeFileSync(cliFile, lines.join("\n"));
   execFileSync("node", [patchCli, cliFile, translations], { encoding: "utf8" });
@@ -18,7 +19,7 @@ function patchFixture(lines) {
 }
 
 function patchFixtureRepeated(lines, times) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-patch-repeat-"));
+  const dir = mkTmpDir("cczh-patch-repeat-");
   const cliFile = path.join(dir, "cli.js");
   fs.writeFileSync(cliFile, lines.join("\n"));
   for (let i = 0; i < times; i += 1) {
@@ -28,7 +29,7 @@ function patchFixtureRepeated(lines, times) {
 }
 
 function runPatchedFixture(lines) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-patch-run-"));
+  const dir = mkTmpDir("cczh-patch-run-");
   const cliFile = path.join(dir, "cli.js");
   fs.writeFileSync(cliFile, lines.join("\n"));
   execFileSync("node", [patchCli, cliFile, translations], { encoding: "utf8" });

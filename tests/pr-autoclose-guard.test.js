@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -17,7 +18,7 @@ function runGuard(args, options = {}) {
 }
 
 function makeTempRepo() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "pr-autoclose-guard-"));
+  return mkTmpDir("pr-autoclose-guard-");
 }
 
 test("PR auto-close guard allows neutral issue links", () => {

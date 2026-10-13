@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -10,7 +11,7 @@ const promoteScript = path.join(repoRoot, "scripts", "promote-native-candidate.j
 const sourceConfig = path.join(repoRoot, "scripts", "upstream-compat.config.json");
 
 function tmpFile(name) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-native-promote-"));
+  const dir = mkTmpDir("cczh-native-promote-");
   return path.join(dir, name);
 }
 
@@ -469,7 +470,6 @@ test("promote-native-candidate requires codesign verification before support-win
   assert.match(result.stderr, /native codesign boundary failed/);
   assert.equal(readJson(configPath).support.macosNativeExperimental.ceiling, currentNativeCeiling);
 });
-
 
 test("bytecode promotion requires runtime and install lifecycle evidence", () => {
   const fixture = candidateResult();

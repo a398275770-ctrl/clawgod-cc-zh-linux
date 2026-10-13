@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { mkTmpDir } = require("./helpers/tmpdir.js");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -37,7 +38,7 @@ test("Windows standalone mode installs slash command stubs without overwriting u
 });
 
 test("session-start Node entrypoint forwards valid platform hook JSON", { skip: process.platform === "win32" }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-entrypoint-"));
+  const tmp = mkTmpDir("cczh-hook-entrypoint-");
   const hooksDir = path.join(tmp, "hooks");
   fs.mkdirSync(hooksDir, { recursive: true });
   fs.copyFileSync(sessionEntrypoint, path.join(hooksDir, "session-start.js"));
@@ -59,7 +60,7 @@ printf '%s\\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additiona
 });
 
 test("Windows session-start hook preserves UTF-8 Chinese in redirected stdout", { skip: process.platform !== "win32" }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-windows-utf8-"));
+  const tmp = mkTmpDir("cczh-hook-windows-utf8-");
   const pluginRoot = path.join(tmp, "plugin");
   const hooksDir = path.join(pluginRoot, "hooks");
   const userProfile = path.join(tmp, "home");
@@ -116,7 +117,7 @@ test("Windows session-start hook preserves UTF-8 Chinese in redirected stdout", 
 });
 
 test("standalone session entrypoint injects its own plugin root into the child hook", { skip: process.platform === "win32" }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-standalone-root-"));
+  const tmp = mkTmpDir("cczh-hook-standalone-root-");
   const pluginRoot = path.join(tmp, "custom-plugin-root");
   const hooksDir = path.join(pluginRoot, "hooks");
   const capturedRoot = path.join(tmp, "captured-root.txt");
@@ -145,7 +146,7 @@ printf '%s\\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additiona
 });
 
 test("session-start Node entrypoint fails open with valid JSON", { skip: process.platform === "win32" }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cczh-hook-fallback-"));
+  const tmp = mkTmpDir("cczh-hook-fallback-");
   const hooksDir = path.join(tmp, "hooks");
   fs.mkdirSync(hooksDir, { recursive: true });
   fs.copyFileSync(sessionEntrypoint, path.join(hooksDir, "session-start.js"));
