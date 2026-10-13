@@ -187,6 +187,8 @@ Claude Code 的 UI 文字硬编码在 13MB 的压缩文件内。我们通过分�
 | Windows · npm（PowerShell） | `2.1.92 - 2.1.112` | 用 install.ps1，需 PowerShell 5.1+ |
 | Windows · native .exe（x64） | `2.1.113 - 2.1.289` 内的已验证版本 | 需要 `node-lief`；个别版本未收录，见支持矩阵 |
 | Linux · 其他官方安装器形态 | 暂无已验证版本 | 仅 Layer 1~3 生效 |
+| Linux / macOS · clawgod bunfs | `2.1.296` | 第三方封装形态，非官方安装器；patch 引擎复用 npm 路径的 patch-cli.js |
+| Windows · clawgod bunfs | `2.1.296` | 同 Linux；install.ps1 自动检测 clawgod 形态并分派 patch |
 
 > - **macOS / Windows 版本号不是运行门禁**：高于已知 native 下限、且仍能被识别的新版会先在本机临时副本上翻译并执行启动自检；通过后才替换。已有词条继续中文，新文案原样保留英文。
 > - **Linux 本机验证**：Linux x64 glibc 的未收录版本先按程序结构和启动自检验证；不支持 arm64、musl，不代表未来版本全量兼容。

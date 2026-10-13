@@ -149,6 +149,16 @@ function renderBadges(config) {
   return lines.join("\n");
 }
 
+function loadClawgodSupport() {
+  const file = path.join(repoRoot, "scripts", "clawgod-support.json");
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 function renderSupportSystems(config) {
   const {
     npmStable,
@@ -158,6 +168,7 @@ function renderSupportSystems(config) {
     windowsNpm,
     windowsNativeExperimental,
   } = supportEntries(config);
+  const clawgod = loadClawgodSupport();
   const stablePinned = npmStable.ceiling || npmStable.representatives?.at(-1) || npmStable.floor;
   const nativeBoundary = nextMajorBoundary(npmStable);
   const hasExcluded =
@@ -187,6 +198,12 @@ function renderSupportSystems(config) {
           "| Windows · native .exe（x64） | 暂无已验证版本 | 会明确跳过 CLI Patch，仅 Layer 1~3 生效 |",
         ]),
     "| Linux · 其他官方安装器形态 | 暂无已验证版本 | 仅 Layer 1~3 生效 |",
+    ...(clawgod && clawgod.verifiedVersion
+      ? [
+          `| Linux / macOS · clawgod bunfs | \`${clawgod.verifiedVersion}\` | ${clawgod.notes || "clawgod 封装形态；逐 chunk patch bunfs，session-start 自动重 patch，卸载还原"} |`,
+          `| Windows · clawgod bunfs | \`${clawgod.verifiedVersion}\` | 同 Linux；install.ps1 自动检测 clawgod 形态并分派 patch |`,
+        ]
+      : []),
     "",
     "> - **macOS / Windows 版本号不是运行门禁**：高于已知 native 下限、且仍能被识别的新版会先在本机临时副本上翻译并执行启动自检；通过后才替换。已有词条继续中文，新文案原样保留英文。",
     ...(linuxNative && linuxNative.unsupported !== true
