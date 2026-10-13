@@ -84,6 +84,7 @@ function makeEnv(baseDir, pluginRoot) {
     PATH: [fakeBin, process.env.PATH].filter(Boolean).join(':'),
     CLAUDE_PLUGIN_ROOT: pluginRoot,
     ZH_CN_UPDATE_CHECK_INTERVAL_SECONDS: '0',
+      ZH_CN_ENABLE_AUTO_UPDATE: "1",
     ZH_CN_LAUNCHER_BIN_DIR: path.join(baseDir, 'missing-launcher-bin'),
     FAKE_CURL_LOG: path.join(baseDir, 'curl.log'),
   };

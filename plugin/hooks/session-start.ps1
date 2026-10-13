@@ -329,7 +329,11 @@ if(changed){fs.writeFileSync(settingsFile,JSON.stringify(merged,null,2)+"\n")}
 # ======== Auto Update ========
 $AutoUpdateMsg = ""
 
-if ($env:CLAUDE_PLUGIN_DATA -and $env:ZH_CN_DISABLE_AUTO_UPDATE -ne "1") {
+# 默认不检查更新（2026-10-14 行为变更，与 bash 端一致）：
+# 需显式设 ZH_CN_ENABLE_AUTO_UPDATE=1 才开启；兼容旧变量 ZH_CN_DISABLE_AUTO_UPDATE=1。
+$autoUpdateEnabled = ($env:ZH_CN_ENABLE_AUTO_UPDATE -eq "1") -and ($env:ZH_CN_DISABLE_AUTO_UPDATE -ne "1")
+
+if ($env:CLAUDE_PLUGIN_DATA -and $autoUpdateEnabled) {
     $now = [DateTimeOffset]::Now.ToUnixTimeSeconds()
     $last = 0
     if (Test-Path $LastUpdateCheckFile) {
@@ -370,7 +374,7 @@ if (Test-Path $SourceRepoFile) {
     $SourceRepo = [System.IO.File]::ReadAllText($SourceRepoFile, [System.Text.Encoding]::UTF8) -replace '\r?\n', ''
 }
 
-if ($SourceRepo -and (Test-Path "$SourceRepo\.git") -and $env:ZH_CN_DISABLE_AUTO_UPDATE -ne "1") {
+if ($SourceRepo -and (Test-Path "$SourceRepo\.git") -and $autoUpdateEnabled) {
     $now = [DateTimeOffset]::Now.ToUnixTimeSeconds()
     $last = 0
     if (Test-Path $LastUpdateCheckFile) {

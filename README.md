@@ -222,6 +222,28 @@ Claude Code 的 UI 文字硬编码在 13MB 的压缩文件内。我们通过分�
 ## ❓ 常见问题
 
 <details>
+<summary><b>启动时出现「等待 API 响应 · N 秒后重试 · 请检查网络」？</b></summary>
+
+这是 session-start hook 里的**自动更新检查**在访问 GitHub 时被网络卡住（v2.25.0 及之前默认开启）。
+从 v2.26.0 起已改为**默认关闭**，需要时显式开启：
+
+```bash
+# 开启自动更新检查（每 6 小时一次）
+export ZH_CN_ENABLE_AUTO_UPDATE=1
+
+# 旧变量仍然兼容：显式关闭（优先级高于 ENABLE）
+export ZH_CN_DISABLE_AUTO_UPDATE=1
+
+# 可选：调整检查间隔与超时（秒）
+export ZH_CN_UPDATE_CHECK_INTERVAL_SECONDS=21600
+export ZH_CN_PLUGIN_UPDATE_TIMEOUT_SECONDS=20
+```
+
+不开启自动更新不影响任何汉化功能（动词、提示、语言、CLI patch 全部照常工作）；
+想更新插件时手动重跑安装脚本即可。
+</details>
+
+<details>
 <summary><b>Claude Code 升级后汉化会失效吗？</b></summary>
 
 不会搞坏你的环境。Layer 1~3（动词、提示、语言偏好）始终常驻生效；Layer 4 检测到新版本时会在启动前自动重补丁。即使遇到格式大改的新版，补丁失败也会自动回滚为英文，绝不卡死 Claude Code。

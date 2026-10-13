@@ -201,6 +201,13 @@ touch_update_check_timestamp() {
 update_check_due() {
     local interval now last
 
+    # 默认不检查更新（2026-10-14 行为变更）：网络受限环境下，同步 hook 里的
+    # GitHub 请求会阻塞 CLI 发送 API（"等待 API 响应 · N 秒后重试"）。
+    # 需要自动更新检查的用户显式设 ZH_CN_ENABLE_AUTO_UPDATE=1；
+    # 兼容旧变量 ZH_CN_DISABLE_AUTO_UPDATE=1（显式关闭，语义不变）。
+    if [ "${ZH_CN_ENABLE_AUTO_UPDATE:-0}" != "1" ]; then
+        return 1
+    fi
     [ "${ZH_CN_DISABLE_AUTO_UPDATE:-0}" = "1" ] && return 1
 
     interval="$UPDATE_CHECK_INTERVAL_SECONDS"
