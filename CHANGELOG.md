@@ -6,6 +6,22 @@
 - **次版本号**：新增功能或显著改进（比如新增 patch、新增翻译）
 - **修订号**：Bug 修复和小调整（比如修正一条翻译）
 
+## [2.25.0] - 2026-10-13
+
+### 新增
+
+- **clawgod bunfs 适配 Windows 平台**：`install.ps1` 自动检测 clawgod 形态并分派 patch（detect-install 回退检测 + `patch-clawgod-bunfs` 函数）；`session-start.ps1` 每次会话启动自动 re-patch（幂等，marker 自查）。
+- `patch-bunfs.js` revision 计算跨平台化：bash 优先，无 bash（Windows）时回退纯 Node 实现（`native-repair.js` 的 `revision()`，同一文件清单与哈希算法）。
+- README 支持矩阵新增 clawgod bunfs 形态两行（Linux/macOS + Windows），由 `sync-readme-support-window.js` 从 `scripts/clawgod-support.json` 自动生成。
+
+### 修复
+
+- QUALITY_SCORE 同步至实际状态：安装器复杂度健康 1→3、守护脚本门禁 3→5、文档体系门禁 0→4（v2.24.0 后实际状态对齐）。
+
+### 文档
+
+- CLAUDE.md 新增「仓库身份与上游关系」：本仓库为独立维护 fork（origin=上游只读，fork=推送目标），不做定期 rebase，按需 cherry-pick 上游翻译条目与安全修复（2026-10-13 用户决策）。
+
 ## [2.24.0] - 2026-10-12
 
 ### 新增
