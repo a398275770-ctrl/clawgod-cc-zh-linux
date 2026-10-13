@@ -603,7 +603,23 @@ function detect-install {
     }
     if (-not $helperFile) { return $null }
     $result = node $helperFile detect $ClaudeBin 2>$null
-    if ($result) { return $result.Trim() }
+    if ($result) {
+        $trimmed = $result.Trim()
+        # helper 返回 unknown 时回退 clawgod bunfs 形态检测（D6，与 install.sh detect_installation 对齐）
+        if ($trimmed -eq "unknown") {
+            $detectClawgodScript = $null
+            if (Test-Path "$PluginSrc\scripts\detect-clawgod.js") {
+                $detectClawgodScript = "$PluginSrc\scripts\detect-clawgod.js"
+            } elseif (Test-Path "$PluginDst\scripts\detect-clawgod.js") {
+                $detectClawgodScript = "$PluginDst\scripts\detect-clawgod.js"
+            }
+            if ($detectClawgodScript) {
+                $clawgodResult = (& node $detectClawgodScript 2>$null | Out-String).Trim()
+                if ($clawgodResult) { return $clawgodResult }
+            }
+        }
+        return $trimmed
+    }
     $claudeDir = Split-Path -Parent $ClaudeBin
     $cliFile = Join-Path $claudeDir "..\lib\node_modules\@anthropic-ai\claude-code\cli.js"
     $cliFile = [System.IO.Path]::GetFullPath($cliFile)
@@ -1238,6 +1254,41 @@ function ensure-node-lief {
     Write-CN "  或用 ZH_CN_NODE_LIEF_TGZ 指定完整路径，安装器会自动从本地包离线安装" Yellow
 }
 
+# 与 install.sh patch_clawgod_bunfs 对齐：clawgod bunfs 形态的 UI 文字逐 chunk patch
+function patch-clawgod-bunfs {
+    param([string]$BunfsDir)
+
+    $patchBunfsScript = Join-Path $ScriptDir "scripts\patch-bunfs.js"
+    if (-not (Test-Path $patchBunfsScript)) {
+        $script:CliPatchStatusSummary = "已跳过（缺少 scripts\patch-bunfs.js）"
+        return
+    }
+
+    Write-Host ""
+    Write-CN "正在 patch clawgod bunfs 硬编码文字..." Blue
+
+    $output = & node $patchBunfsScript $BunfsDir 2>&1 | Out-String
+    $resultLine = ($output -split "`n" | Where-Object { $_ -match '^RESULT ' } | Select-Object -Last 1)
+    $patchedCount = 0
+    $failedCount = 0
+    if ($resultLine -match '^RESULT (.+)$') {
+        try {
+            $result = $Matches[1] | ConvertFrom-Json
+            $patchedCount = [int]$result.patched
+            $failedCount = [int]$result.failed
+        } catch {}
+    }
+
+    if ($failedCount -eq 0) {
+        Write-CN "已 patch clawgod bunfs（${patchedCount} 个 chunk）" Green
+        $script:CliPatchStatusSummary = "clawgod bunfs 中文化（${patchedCount} 个 chunk）"
+    } else {
+        Write-CN "clawgod bunfs 部分中文化（成功 ${patchedCount}，失败 ${failedCount} 已回滚，CLI 保持可用）" Yellow
+        $script:CliPatchStatusSummary = "clawgod bunfs 部分中文化（${patchedCount} 成功 / ${failedCount} 回滚）"
+    }
+    $script:CliPatchStatusOk = $true
+}
+
 function initial-patch {
     $modeFile = Join-Path $PluginDst ".language-mode"
     if ((Test-Path -LiteralPath $modeFile) -and ((Get-Content -LiteralPath $modeFile -Raw).Trim() -eq "en")) {
@@ -1268,6 +1319,11 @@ function initial-patch {
             if ($target -and (Test-Path $target)) {
                 ensure-node-lief
                 patch-native-bun $target
+            }
+        }
+        "clawgod-bunfs" {
+            if ($target) {
+                patch-clawgod-bunfs $target
             }
         }
         "unknown" {

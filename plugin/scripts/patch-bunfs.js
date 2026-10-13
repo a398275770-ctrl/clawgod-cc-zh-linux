@@ -75,13 +75,23 @@ const version = fs.existsSync(versionFile)
   ? fs.readFileSync(versionFile, "utf8").trim() || "unknown"
   : "unknown";
 
-// compute-patch-revision.sh 只定义函数、无独立入口：source 后调用（与 install.sh 一致）
-const revR = spawnSync(
-  "bash",
-  ["-c", `source "${COMPUTE_REVISION}" && compute_patch_revision "${REPO_ROOT}"`],
-  { encoding: "utf8" }
-);
-const revision = (revR.stdout || "").trim() || "unknown";
+// revision 计算：优先 bash + compute-patch-revision.sh（与 install.sh 一致）；
+// Windows 无 bash 时回退纯 Node 实现（native-repair.js 的 revision()，同一份文件清单与哈希算法）
+function computeRevision() {
+  const revR = spawnSync(
+    "bash",
+    ["-c", `source "${COMPUTE_REVISION}" && compute_patch_revision "${REPO_ROOT}"`],
+    { encoding: "utf8" }
+  );
+  const shellRevision = (revR.stdout || "").trim();
+  if (shellRevision) return shellRevision;
+  try {
+    return require("./native-repair.js").revision(REPO_ROOT);
+  } catch {
+    return "unknown";
+  }
+}
+const revision = computeRevision();
 
 // 幂等：同版本同 revision 已 patch 过
 if (!dryRun && fs.existsSync(markerFile)) {

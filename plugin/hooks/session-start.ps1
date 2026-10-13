@@ -499,6 +499,30 @@ if ($InstallInfo -and $LanguageMode -ne "en") {
 
 if ($LanguageMode -ne "en") { Repair-SettingsFromCache }
 
+# clawgod bunfs 自动 re-patch（独立于 npm/native 路径；marker 在 clawgod 侧，patch-bunfs 自查幂等；与 session-start.sh 对齐）
+if ($LanguageMode -ne "en") {
+    $detectClawgodScript = Join-Path $PluginRoot "scripts\detect-clawgod.js"
+    $patchBunfsScript = Join-Path $PluginRoot "scripts\patch-bunfs.js"
+    $clawgodBunfs = ""
+    if ((Test-Path $detectClawgodScript) -and (Get-Command node -ErrorAction SilentlyContinue)) {
+        $clawgodBunfs = (& node $detectClawgodScript 2>$null | Out-String).Trim()
+    }
+    if ($clawgodBunfs -and (Test-Path $patchBunfsScript)) {
+        $bunfsPath = $clawgodBunfs -replace "^clawgod-bunfs:", ""
+        $cgResultLine = (& node $patchBunfsScript $bunfsPath 2>$null | Out-String) -split "`n" |
+            Where-Object { $_ -match '^RESULT ' } | Select-Object -Last 1
+        if ($cgResultLine -match '^RESULT (.+)$') {
+            try {
+                $cgResult = $Matches[1] | ConvertFrom-Json
+                switch ($cgResult.status) {
+                    "ok" { $AutoPatchMsg += "（已自动 patch clawgod bunfs $($cgResult.patched) 个 chunk）" }
+                    "partial" { $AutoPatchMsg += "（clawgod bunfs 部分汉化，失败 chunk 已回滚，CLI 保持可用）" }
+                }
+            } catch {}
+        }
+    }
+}
+
 # ======== Cleanup tmp dir ========
 if (Test-Path $TmpDir) {
     Remove-Item -Recurse -Force $TmpDir -ErrorAction SilentlyContinue
