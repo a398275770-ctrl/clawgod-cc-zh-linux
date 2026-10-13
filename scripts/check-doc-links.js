@@ -38,7 +38,7 @@ const LINK_SOURCES = [
   "docs/CI.md",
   "docs/QUALITY_SCORE.md",
   "docs/design-docs/core-beliefs.md",
-  "docs/exec-plans/active/clawgod-bunfs-adaptation.md",
+  "docs/exec-plans/completed/clawgod-bunfs-adaptation-2026-10-12.md",
   "docs/exec-plans/completed/harness-2026-10-12.md",
   "docs/exec-plans/tech-debt-tracker.md",
 ];
@@ -82,7 +82,7 @@ function checkRequiredSections() {
   for (const [file, sections] of Object.entries(REQUIRED_SECTIONS)) {
     const abs = path.join(REPO_ROOT, file);
     if (!fs.existsSync(abs)) {
-      errors.push(`MISSING: ${file}\n  修复：重建该文档（骨架见 docs/exec-plans/active/harness-migration.md 附录引用）`);
+      errors.push(`MISSING: ${file}\n  修复：重建该文档（骨架见 docs/exec-plans/completed/harness-2026-10-12.md 附录引用）`);
       continue;
     }
     const content = fs.readFileSync(abs, "utf8");

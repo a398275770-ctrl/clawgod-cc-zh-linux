@@ -16,11 +16,12 @@
 
 | 文档 | 说明 |
 |---|---|
-| `exec-plans/active/harness-migration.md` | Harness 工程化改造计划（进行中） |
 | `exec-plans/tech-debt-tracker.md` | 技术债台账 |
 | `exec-plans/completed/2026-04-21-native-binary-latest-support-research-brief.md` | 归档：native latest 支持调研 |
 | `exec-plans/completed/2026-04-30-macos-native-experimental-validation.md` | 归档：macOS native 实验验证 |
 | `exec-plans/completed/2026-05-26-windows-native-support.md` | 归档：Windows native 支持计划 |
+| `exec-plans/completed/harness-2026-10-12.md` | 归档：Harness 工程化改造 |
+| `exec-plans/completed/clawgod-bunfs-adaptation-2026-10-12.md` | 归档：clawgod bunfs 安装形态适配 |
 
 ## CI 与发布
 
