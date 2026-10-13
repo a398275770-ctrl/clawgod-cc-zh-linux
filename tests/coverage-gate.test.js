@@ -78,3 +78,55 @@ test("coverage-gate: tests/ 目录不计入源码统计", () => {
   const r = run(makeLcov(entries));
   assert.strictEqual(r.status, 0, r.stderr);
 });
+
+test("coverage-gate: 与根字节一致的 plugin/ 负载副本不双计（TD-QA-006）", () => {
+  // patch-cli.js 在根与 plugin/ 各有一份且字节一致：两份都进报告时只能计一次
+  const entries = entriesForKeyFiles(95);
+  entries.push(["plugin/patch-cli.js", 100, Math.round(95)]);
+  const r = run(makeLcov(entries));
+  assert.strictEqual(r.status, 0, r.stderr);
+  // 46 个真实源文件口径下不应出现 plugin 副本；报告行数只统计一次
+  assert.doesNotMatch(r.stdout, /plugin\/patch-cli\.js: 行/);
+});
+
+test("coverage-gate: 低于 floor 下限的源文件必须失败并点名（TD-QA-007）", () => {
+  const entries = entriesForKeyFiles(95);
+  const floor = THRESHOLDS.floor.minLineRate;
+  entries.push(["scripts/not-exempted.js", 100, Math.max(0, floor - 10)]);
+  const r = run(makeLcov(entries));
+  assert.notStrictEqual(r.status, 0);
+  assert.match(r.stderr, /低于下限/);
+  assert.match(r.stderr, /scripts\/not-exempted\.js/);
+  assert.match(r.stderr, /floor\.exempt/);
+});
+
+test("coverage-gate: floor.exempt 登记的文件不因低覆盖失败", () => {
+  const exemptFile = Object.keys(THRESHOLDS.floor.exempt)[0];
+  const entries = entriesForKeyFiles(95);
+  entries.push([exemptFile, 100, 5]); // 远低于 floor，但已登记豁免
+  const r = run(makeLcov(entries));
+  assert.strictEqual(r.status, 0, r.stderr);
+});
+
+test("coverage-gate: floor.exempt 到期后豁免自动失效", () => {
+  // 改一个已过期的临时阈值文件，验证过期即恢复拦截
+  const tmpThresholds = JSON.parse(JSON.stringify(THRESHOLDS));
+  const exemptFile = Object.keys(tmpThresholds.floor.exempt)[0];
+  tmpThresholds.floor.exempt[exemptFile].expires = "2020-01-01";
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "th-"));
+  // 脚本从自身所在目录读阈值，故把脚本+过期阈值复制到临时仓库结构再跑
+  const tmpRepo = path.join(tmpDir, "repo");
+  fs.mkdirSync(path.join(tmpRepo, "scripts"), { recursive: true });
+  fs.copyFileSync(SCRIPT, path.join(tmpRepo, "scripts", "check-coverage.js"));
+  fs.writeFileSync(path.join(tmpRepo, "scripts", "coverage-thresholds.json"), JSON.stringify(tmpThresholds));
+  const entries = entriesForKeyFiles(95);
+  entries.push([exemptFile, 100, 5]);
+  const lcov = makeLcov(entries);
+  const r = spawnSync("node", [path.join(tmpRepo, "scripts", "check-coverage.js"), "--lcov", lcov], {
+    cwd: tmpRepo,
+    encoding: "utf8",
+  });
+  assert.notStrictEqual(r.status, 0);
+  assert.match(r.stderr, /豁免已过期/);
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

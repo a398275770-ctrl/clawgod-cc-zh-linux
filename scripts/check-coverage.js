@@ -52,13 +52,50 @@ function parseLcov(text) {
   return out;
 }
 
+// plugin/ 下的负载副本：与根目录源文件字节一致时视为同一份代码，覆盖率只计一次。
+// 副本由 scripts/sync-payload.sh 从根复制（core-beliefs #15），不是第二源码树。
+// 有意保留差异的副本（如 install-json-helper.js 的 require 路径适配）不排除，独立统计。
+const PAYLOAD_MIRRORS = new Set([
+  "plugin/patch-cli.js",
+  "plugin/patch-cli.sh",
+  "plugin/cli-translations.json",
+  "plugin/bun-binary-io.js",
+  "plugin/compute-patch-revision.sh",
+  "plugin/settings-overlay.json",
+  "plugin/verbs/zh-CN.json",
+  "plugin/tips/zh-CN.json",
+  "plugin/bin/doctor",
+  "plugin/bin/doctor.ps1",
+  "plugin/scripts/zh-cn-doctor.js",
+  "plugin/scripts/patch-bytecode.js",
+  "plugin/scripts/native-repair.js",
+  "plugin/scripts/detect-clawgod.js",
+  "plugin/scripts/patch-bunfs.js",
+]);
+
+function isPayloadMirror(sf) {
+  if (!PAYLOAD_MIRRORS.has(sf)) return false;
+  // 只有当副本与根源逐字节一致时才是"同一份代码"；有差异说明它已独立演化，应单独统计
+  // plugin/scripts/x.js 的根源是 scripts/x.js（去掉 plugin/ 前缀即可对上 sync-payload.sh 的映射）
+  const rootRelative = sf.replace(/^plugin\//, "");
+  const rootPath = path.join(REPO_ROOT, rootRelative);
+  if (!fs.existsSync(rootPath)) return false;
+  try {
+    return fs.readFileSync(rootPath).equals(fs.readFileSync(path.join(REPO_ROOT, sf)));
+  } catch {
+    return false;
+  }
+}
+
 function isRepoSourceFile(sf) {
   // 只统计仓库内源码：仓库内文件是形如 scripts/x.js、plugin/... 的纯相对路径；
   // 测试临时目录的 fixture 副本以 ../.. 开头（或绝对路径），一律排除
   if (path.isAbsolute(sf)) return false;
   if (sf.split("/").includes("..")) return false;
   if (sf.startsWith("tests/")) return false;
-  return /\.(js|mjs|cjs)$/.test(sf);
+  if (!/\.(js|mjs|cjs)$/.test(sf)) return false;
+  if (isPayloadMirror(sf)) return false; // 与根字节一致的负载副本不双计
+  return true;
 }
 
 function aggregate(metrics) {
@@ -117,6 +154,28 @@ function main() {
   if (overall.branchRate < t.branches) failures.push(`整体分支覆盖 ${overall.branchRate.toFixed(2)}% < 下限 ${t.branches}%`);
   if (overall.funcRate < t.functions) failures.push(`整体函数覆盖 ${overall.funcRate.toFixed(2)}% < 下限 ${t.functions}%`);
 
+  // 低覆盖下限（TD-QA-007）：任一仓库内源文件行覆盖过低即失败，避免"整体达标但单文件几乎没测"。
+  // 已知无法单测的文件（如需真实 native binary fixture）在 floor.exempt 显式登记，带 reason + expires。
+  const floor = thresholds.floor || {};
+  const floorMin = typeof floor.minLineRate === "number" ? floor.minLineRate : null;
+  const floorExempt = new Set(Object.keys(floor.exempt || {}));
+  if (floorMin !== null) {
+    const low = [];
+    for (const [sf, m] of repoFiles) {
+      if (floorExempt.has(sf)) continue;
+      if (m.lineRate < floorMin) low.push(`  ${sf}: 行 ${m.lineRate.toFixed(2)}%（${m.lh}/${m.lf}）< 下限 ${floorMin}%`);
+    }
+    if (low.length) {
+      failures.push(`${low.length} 个源文件行覆盖低于下限 ${floorMin}%：\n${low.join("\n")}`);
+    }
+  }
+  const expiredExemptions = Object.entries(floor.exempt || {})
+    .filter(([, meta]) => meta && meta.expires && new Date(meta.expires) < new Date())
+    .map(([sf, meta]) => `  ${sf}: 豁免已于 ${meta.expires} 过期`);
+  if (expiredExemptions.length) {
+    failures.push(`低覆盖豁免已过期（请补测试或重新登记）：\n${expiredExemptions.join("\n")}`);
+  }
+
   for (const [file, floor] of Object.entries(thresholds.keyFiles || {})) {
     const m = repoFiles.get(file);
     if (!m) {
@@ -131,7 +190,8 @@ function main() {
     console.error(`check-coverage: ${failures.length} 项未达标`);
     for (const f of failures) console.error("  " + f);
     console.error("  修复：为未覆盖路径补测试（未覆盖行号见 node --test --experimental-test-coverage tests/ 输出）；");
-    console.error("        阈值本身不合理的，在 scripts/coverage-thresholds.json 调整并在 PR 描述中说明理由。");
+    console.error("        阈值本身不合理的，在 scripts/coverage-thresholds.json 调整并在 PR 描述中说明理由；");
+    console.error("        确属无法单测的文件，在 floor.exempt 登记 { reason, expires }（到期自动恢复拦截）。");
     process.exit(1);
   }
   console.log("check-coverage: OK（全部达标）");
