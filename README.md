@@ -14,9 +14,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 <!-- readme-support-window:badges:start -->
 [![npm](https://img.shields.io/badge/npm-2.1.92--2.1.112-green)](./docs/support-matrix.md)
-[![macOS native](https://img.shields.io/badge/macos%20native-2.1.113--2.1.295-green)](./docs/support-matrix.md)
-[![Linux native](https://img.shields.io/badge/linux%20native-2.1.220--2.1.285-green)](./docs/support-matrix.md)
-[![Windows native](https://img.shields.io/badge/windows%20native-2.1.113--2.1.289-green)](./docs/support-matrix.md)
+[![macOS native](https://img.shields.io/badge/macos%20native-2.1.113--2.1.300-green)](./docs/support-matrix.md)
+[![Linux native](https://img.shields.io/badge/linux%20native-2.1.220--2.1.300-green)](./docs/support-matrix.md)
+[![Windows native](https://img.shields.io/badge/windows%20native-2.1.113--2.1.300-green)](./docs/support-matrix.md)
 <!-- readme-support-window:badges:end -->
 [![Version](https://img.shields.io/github/v/tag/taekchef/claude-code-zh-cn?label=Version&color=blue)](https://github.com/taekchef/claude-code-zh-cn/releases)
 
@@ -182,10 +182,10 @@ Claude Code 的 UI 文字硬编码在 13MB 的压缩文件内。我们通过分�
 |------|-----------|------|
 | macOS / Linux / WSL · npm 全局安装 | `2.1.92 - 2.1.112` | 翻译最完整；launcher 启动前自修复 + `session-start` 兜底 |
 | macOS · 官方安装器（native） | `2.1.110 - 2.1.112` | 需要 `node-lief` |
-| macOS · native binary（arm64） | `2.1.113 - 2.1.295` 内的已验证版本 | 需要 `node-lief`；个别版本未收录，见支持矩阵 |
-| Linux · native binary（x64 glibc） | `2.1.220 - 2.1.285` | 需要 `node-lief >=1.3.0`；未收录版本先本机验证，不含 arm64、musl |
+| macOS · native binary（arm64） | `2.1.113 - 2.1.300` 内的已验证版本 | 需要 `node-lief`；个别版本未收录，见支持矩阵 |
+| Linux · native binary（x64 glibc） | `2.1.220 - 2.1.300` | 需要 `node-lief >=1.3.0`；未收录版本先本机验证，不含 arm64、musl |
 | Windows · npm（PowerShell） | `2.1.92 - 2.1.112` | 用 install.ps1，需 PowerShell 5.1+ |
-| Windows · native .exe（x64） | `2.1.113 - 2.1.289` 内的已验证版本 | 需要 `node-lief`；个别版本未收录，见支持矩阵 |
+| Windows · native .exe（x64） | `2.1.113 - 2.1.300` 内的已验证版本 | 需要 `node-lief`；个别版本未收录，见支持矩阵 |
 | Linux · 其他官方安装器形态 | 暂无已验证版本 | 仅 Layer 1~3 生效 |
 | Linux / macOS · clawgod bunfs | `2.1.296` | 第三方封装形态，非官方安装器；patch 引擎复用 npm 路径的 patch-cli.js |
 | Windows · clawgod bunfs | `2.1.296` | 同 Linux；install.ps1 自动检测 clawgod 形态并分派 patch |
@@ -207,8 +207,8 @@ Claude Code 的 UI 文字硬编码在 13MB 的压缩文件内。我们通过分�
 | `npm install -g @anthropic-ai/claude-code`（latest） | macOS / Windows native 新版先本机自检；Linux x64 glibc 新版先本机自检 |
 | `curl -fsSL https://claude.ai/install.sh \| bash -s 2.1.112` | 官方安装器指定已验证旧版本（需要 `node-lief`） |
 | `curl -fsSL https://claude.ai/install.sh \| sh`（latest） | macOS 新版先本机自检；Linux x64 glibc 新版先本机自检 |
-| `curl -fsSL https://claude.ai/install.sh \| bash -s 2.1.285` | Linux x64 glibc 已验证版本（需要 `node-lief >=1.3.0`）；不含 arm64、musl 或未验证版本 |
-| `powershell -File install.ps1` | Windows：旧 npm cli.js 最完整；native .exe `2.1.113 - 2.1.289` 内已验证版本需 `node-lief`；Claude 更新后关闭所有窗口并重跑 |
+| `curl -fsSL https://claude.ai/install.sh \| bash -s 2.1.300` | Linux x64 glibc 已验证版本（需要 `node-lief >=1.3.0`）；不含 arm64、musl 或未验证版本 |
+| `powershell -File install.ps1` | Windows：旧 npm cli.js 最完整；native .exe `2.1.113 - 2.1.300` 内已验证版本需 `node-lief`；Claude 更新后关闭所有窗口并重跑 |
 
 > **native binary 说明**：官方安装器和新版 npm 包安装的是原生程序。插件会按容器格式翻译：源码构建提取并写回 JS，字节码构建在原字符串占位内写入中文；译文超过占位长度时保留英文。两条路径均在启动自检通过后记录成功，macOS 还会重新签名。已验证版本见[支持矩阵](./docs/support-matrix.md)，不代表完整中文覆盖。Linux x64 glibc 未收录版本须通过本机验证，需要 `node-lief >=1.3.0`。Windows 更新 Claude Code 后，请关闭所有 Claude Code 窗口，再通过已安装的 `claude` 启动器启动。
 
